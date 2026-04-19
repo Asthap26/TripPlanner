@@ -133,21 +133,22 @@ export default function Intro({ onEnter }) {
   const text2 = "sathi";
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, scale: 0.95 },
     visible: { 
       opacity: 1,
-      transition: { staggerChildren: 0.06, delayChildren: 0.1 }
+      scale: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.3, ease: [0.16, 1, 0.3, 1], duration: 1.5 }
     },
     exit: {
       opacity: 0,
-      scale: 1.5,
-      filter: "blur(20px)",
-      transition: { duration: 0.6, ease: "easeIn" }
+      scale: 2,
+      filter: "blur(30px)",
+      transition: { duration: 0.8, ease: [0.7, 0, 0.84, 0] }
     }
   };
 
   const letterVariants = {
-    hidden: { opacity: 0, rotateX: 90, rotateY: 30, y: 100, z: -500, filter: "blur(10px)" },
+    hidden: { opacity: 0, rotateX: -90, rotateY: 45, y: 60, z: -300, filter: "blur(20px)" },
     visible: { 
       opacity: 1, 
       rotateX: 0, 
@@ -155,7 +156,7 @@ export default function Intro({ onEnter }) {
       y: 0, 
       z: 0, 
       filter: "blur(0px)",
-      transition: { type: "spring", damping: 15, stiffness: 300 } 
+      transition: { type: "spring", damping: 14, stiffness: 200, mass: 0.8 } 
     }
   };
 
@@ -180,37 +181,63 @@ export default function Intro({ onEnter }) {
         </motion.div>
 
         {/* Central 3D Typography */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 perspective-[1000px]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 perspective-[1200px]">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={isTransitioning ? "exit" : "visible"}
-            className="text-[clamp(60px,12vw,140px)] font-bold tracking-tighter text-white flex items-baseline drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+            className="text-[clamp(60px,12vw,140px)] font-bold tracking-tighter flex items-baseline drop-shadow-[0_0_30px_rgba(0,255,157,0.15)] relative"
           >
-            <div className="flex">
+            <motion.div 
+              animate={!isTransitioning ? { y: [0, -15, 0], rotateX: [0, 10, 0] } : {}} 
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="flex"
+            >
               {text1.split("").map((c, i) => (
-                <motion.span key={`1-${i}`} variants={letterVariants} className="inline-block origin-bottom">
+                <motion.span 
+                  key={`1-${i}`} 
+                  variants={letterVariants} 
+                  className="inline-block origin-bottom transform-gpu"
+                  style={{
+                    background: "linear-gradient(to bottom, #ffffff 20%, #7a7a7a 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                  }}
+                >
                   {c}
                 </motion.span>
               ))}
-            </div>
-            <div className="flex">
+            </motion.div>
+            <motion.div 
+              animate={!isTransitioning ? { y: [0, -15, 0], rotateX: [0, 10, 0] } : {}} 
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="flex"
+            >
               {text2.split("").map((c, i) => (
-                <motion.span key={`2-${i}`} variants={letterVariants} className="inline-block origin-bottom text-[var(--accent)] font-light">
+                <motion.span 
+                  key={`2-${i}`} 
+                  variants={letterVariants} 
+                  className="inline-block origin-bottom font-light transform-gpu"
+                  style={{
+                    background: "linear-gradient(to bottom, var(--accent) 20%, #00aa66 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                  }}
+                >
                   {c}
                 </motion.span>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
           
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, letterSpacing: "1.2em", y: 20 }}
             animate={
               isTransitioning 
-                ? { opacity: 0, y: 20, transition: { duration: 0.3 } }
-                : { opacity: 1, y: 0, transition: { duration: 1, ease: [0.16, 1, 0.3, 1], delay: 1.0 } }
+                ? { opacity: 0, scale: 1.5, filter: "blur(10px)", transition: { duration: 0.4 } }
+                : { opacity: 1, letterSpacing: "0.4em", y: 0, transition: { duration: 2.5, ease: [0.16, 1, 0.3, 1], delay: 1.5 } }
             }
-            className="text-[var(--text-secondary)] text-xs md:text-sm tracking-[0.4em] uppercase font-light mt-6"
+            className="text-[var(--text-secondary)] text-xs md:text-sm uppercase font-light mt-8 pl-[0.4em]"
           >
             Intelligent Travel Architecture
           </motion.div>
