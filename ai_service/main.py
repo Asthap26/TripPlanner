@@ -14,7 +14,6 @@ class TripRequest(BaseModel):
     diffDays: int = 5
     interests: List[str] = []
 
-
 @app.post("/generate")
 async def generate_itinerary(request: TripRequest) -> Dict[str, Any]:
     print(f"Generating realistic itinerary for {request.destination} for {request.diffDays} days...")
