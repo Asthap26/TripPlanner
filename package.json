@@ -5,16 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"npm run dev\" \"cd backend && npm start\"",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
+    "concurrently": "^9.2.1",
+    "framer-motion": "^11.0.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.320.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "framer-motion": "^11.0.0",
-    "three": "^0.160.0",
-    "lucide-react": "^0.320.0"
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^7.14.1",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

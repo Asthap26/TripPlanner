@@ -1,48 +1,42 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import ProblemSolution from './components/ProblemSolution';
-import HowItWorks from './components/HowItWorks';
-import Features from './components/Features';
-import Ecosystem from './components/Ecosystem';
-import SocialProof from './components/SocialProof';
-import Destinations from './components/Destinations';
-import FinalCTA from './components/FinalCTA';
-import Footer from './components/Footer';
-import Intro from './components/Intro';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
+import TripWizardPage from './pages/TripWizardPage';
+import ItineraryPage from './pages/ItineraryPage';
+import DashboardPage from './pages/DashboardPage';
+import DestinationPage from './pages/DestinationPage';
+import RestaurantsPage from './pages/RestaurantsPage';
+import TransportPage from './pages/TransportPage';
+import ReviewPage from './pages/ReviewPage';
+import PartnerOnboardingPage from './pages/PartnerOnboardingPage';
+import UserProfilePage from './pages/UserProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
+import BusinessDashboardPage from './pages/BusinessDashboardPage';
+import AboutPage from './pages/AboutPage';
 
 function App() {
-  const [hasEntered, setHasEntered] = useState(false);
-
   return (
-    <div className="relative">
-      <AnimatePresence mode="wait">
-        {!hasEntered ? (
-          <motion.div key="intro" exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-            <Intro onEnter={() => setHasEntered(true)} />
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="main" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <Navbar />
-            <Hero />
-            <ProblemSolution />
-            <HowItWorks />
-            <Features />
-            <Ecosystem />
-            <SocialProof />
-            <Destinations />
-            <FinalCTA />
-            <Footer />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <Router>
+      <div className="bg-[#0A0A0A] min-h-screen text-white font-sans selection:bg-[#00FF9D] selection:text-black">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/plan" element={<TripWizardPage />} />
+          <Route path="/itinerary" element={<ItineraryPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/destination/:id" element={<DestinationPage />} />
+          <Route path="/restaurants" element={<RestaurantsPage />} />
+          <Route path="/transport" element={<TransportPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          <Route path="/partner-onboarding" element={<PartnerOnboardingPage />} />
+          <Route path="/profile/:username" element={<UserProfilePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/partner-dashboard" element={<BusinessDashboardPage />} />
+          <Route path="/about" element={<AboutPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
