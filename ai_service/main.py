@@ -18,6 +18,7 @@ class TripRequest(BaseModel):
 async def generate_itinerary(request: TripRequest) -> Dict[str, Any]:
     print(f"Generating realistic itinerary for {request.destination} for {request.diffDays} days...")
     
+    
     # Calculate detailed budget breakdown
     stays_budget = int(request.totalBudget * 0.45)
     transport_budget = int(request.totalBudget * 0.25)
