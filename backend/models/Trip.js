@@ -10,5 +10,5 @@ const TripSchema = new mongoose.Schema({
   extraActivities: { type: Boolean },
   createdAt: { type: Date, default: Date.now }
 });
-export default mongoose.model('Trip', TripSchema);
 
+export default mongoose.model('Trip', TripSchema);
