@@ -12,6 +12,8 @@ export default function Features() {
     { icon: <Navigation />, title: "Offline Maps", desc: "Your entire itinerary available without internet." }
   ];
 
+
+  
   return (
     <section className="py-24 relative z-10">
       <div className="max-w-7xl mx-auto px-6">
