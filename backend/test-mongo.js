@@ -10,4 +10,5 @@ async function test() {
     process.exit(1);
   }
 }
+
 test();
