@@ -2,11 +2,17 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import tripRoutes from './routes/tripRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import publicRoutes from './routes/publicRoutes.js';
+import partnerRoutes from './routes/partnerRoutes.js';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 
@@ -36,6 +42,8 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/partner', partnerRoutes);
 
 app.get('/', (req, res) => {
   res.send('YATRAsathi Full-Stack Backend is running!');

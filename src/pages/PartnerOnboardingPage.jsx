@@ -1,12 +1,58 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Building2, Briefcase, TrendingUp, Users, CalendarCheck, CheckCircle2, 
-  ShieldCheck, UploadCloud, ArrowRight
+  ShieldCheck, UploadCloud, ArrowRight, Loader2
 } from 'lucide-react';
 
 function PartnerOnboardingPage() {
+  const navigate = useNavigate();
   const [partnerType, setPartnerType] = useState('restaurant'); // restaurant, agency
+
+  const [formData, setFormData] = useState({
+    businessName: '',
+    businessType: 'Restaurant',
+    ownerName: '',
+    city: '',
+    email: '',
+    phone: '',
+    gstNumber: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch('http://localhost:5555/api/auth/register-partner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
+      
+      setSuccess('Application submitted successfully! Redirecting to login...');
+      setTimeout(() => {
+        navigate('/auth');
+      }, 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00FF9D] selection:text-black">
@@ -17,7 +63,7 @@ function PartnerOnboardingPage() {
             YATRA<span className="text-[#00FF9D]">sathi</span> <span className="text-sm font-normal text-gray-400">for Partners</span>
           </Link>
           <div className="flex gap-4">
-            <button className="text-sm font-medium hover:text-[#00FF9D] transition-colors">Login</button>
+            <button onClick={() => navigate('/auth')} className="text-sm font-medium hover:text-[#00FF9D] transition-colors">Login</button>
           </div>
         </div>
       </header>
@@ -207,15 +253,19 @@ function PartnerOnboardingPage() {
           <div className="lg:w-1/2 w-full">
             <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
               <h3 className="text-2xl font-bold mb-6">Business Registration</h3>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              
+              {error && <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 text-red-400 text-sm rounded-lg">{error}</div>}
+              {success && <div className="mb-4 p-3 bg-green-500/20 border border-green-500/50 text-green-400 text-sm rounded-lg">{success}</div>}
+
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Business Name</label>
-                    <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Business Name *</label>
+                    <input type="text" name="businessName" value={formData.businessName} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Business Type</label>
-                    <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
+                    <label className="block text-xs text-gray-400 mb-1">Business Type *</label>
+                    <select name="businessType" value={formData.businessType} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
                       <option>Restaurant</option>
                       <option>Travel Agency</option>
                       <option>Hotel / Resort</option>
@@ -224,27 +274,31 @@ function PartnerOnboardingPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Owner Name</label>
-                    <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Owner Name *</label>
+                    <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">City</label>
-                    <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">City *</label>
+                    <input type="text" name="city" value={formData.city} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Email</label>
-                    <input type="email" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Email *</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Phone</label>
-                    <input type="tel" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Phone *</label>
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">GST Number (Optional for basic)</label>
-                  <input type="text" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                  <input type="text" name="gstNumber" value={formData.gstNumber} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Password *</label>
+                  <input type="password" name="password" value={formData.password} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" placeholder="To manage your dashboard later" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Upload Logo</label>
@@ -252,7 +306,8 @@ function PartnerOnboardingPage() {
                     <UploadCloud className="w-5 h-5" /> Browse File
                   </div>
                 </div>
-                <button className="w-full bg-[#00FF9D] text-black py-4 rounded-xl font-bold mt-4 hover:bg-[#00e68d] transition-colors flex items-center justify-center gap-2">
+                <button disabled={loading} className="w-full bg-[#00FF9D] text-black py-4 rounded-xl font-bold mt-4 hover:bg-[#00e68d] transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                  {loading && <Loader2 className="w-5 h-5 animate-spin" />}
                   Submit Application <ArrowRight className="w-5 h-5" />
                 </button>
               </form>

@@ -6,8 +6,10 @@ const TripSchema = new mongoose.Schema({
   city: { type: String },
   days: { type: Number },
   members: { type: Number },
-  budget: { type: Number },
+  budget: { type: String },
+  totalBudget: { type: Number },
   extraActivities: { type: Boolean },
+  itinerary: { type: mongoose.Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now }
 });
 

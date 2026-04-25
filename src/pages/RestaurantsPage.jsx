@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, MapPin, Star, Filter, Map, List as ListIcon, Heart, ExternalLink 
@@ -7,6 +7,34 @@ import {
 function RestaurantsPage() {
   const [viewMode, setViewMode] = useState('grid');
   const [filters, setFilters] = useState({ veg: false });
+  const [restaurants, setRestaurants] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5555/api/public/restaurants')
+      .then(res => res.json())
+      .then(data => setRestaurants(data))
+      .catch(err => console.error('Error fetching restaurants:', err));
+  }, []);
+
+  const fallbackRestaurants = [
+    { name: "Cafe Simla Times", cuisine: "Italian, Cafe", rating: 4.6, reviews: 342, price: "₹₹", verified: true, prebook: true, img: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop" },
+    { name: "Himachali Rasoi", cuisine: "North Indian, Local", rating: 4.8, reviews: 512, price: "₹", verified: true, prebook: false, img: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=600&auto=format&fit=crop" },
+    { name: "The Restaurant at Oberoi", cuisine: "Fine Dining", rating: 4.9, reviews: 218, price: "₹₹₹₹", verified: true, prebook: true, img: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600&auto=format&fit=crop" },
+    { name: "Wake & Bake", cuisine: "Cafe, Continental", rating: 4.4, reviews: 892, price: "₹₹", verified: false, prebook: false, img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=600&auto=format&fit=crop" },
+  ];
+
+  const displayRestaurants = restaurants.length > 0 
+    ? restaurants.map(r => ({
+        name: r.businessName,
+        cuisine: r.vegNonveg || "Multi-Cuisine",
+        rating: r.rating || 4.5,
+        reviews: Math.floor(Math.random() * 500) + 50,
+        price: "₹₹",
+        verified: true,
+        prebook: true,
+        img: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600&auto=format&fit=crop"
+      }))
+    : fallbackRestaurants;
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
@@ -76,12 +104,7 @@ function RestaurantsPage() {
 
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
-            {[
-              { name: "Cafe Simla Times", cuisine: "Italian, Cafe", rating: 4.6, reviews: 342, price: "₹₹", verified: true, prebook: true, img: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop" },
-              { name: "Himachali Rasoi", cuisine: "North Indian, Local", rating: 4.8, reviews: 512, price: "₹", verified: true, prebook: false, img: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=600&auto=format&fit=crop" },
-              { name: "The Restaurant at Oberoi", cuisine: "Fine Dining", rating: 4.9, reviews: 218, price: "₹₹₹₹", verified: true, prebook: true, img: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600&auto=format&fit=crop" },
-              { name: "Wake & Bake", cuisine: "Cafe, Continental", rating: 4.4, reviews: 892, price: "₹₹", verified: false, prebook: false, img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=600&auto=format&fit=crop" },
-            ].map((rest, i) => (
+            {displayRestaurants.map((rest, i) => (
               <div key={i} className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden group hover:border-white/20 transition-all flex flex-col">
                 <div className="h-48 bg-cover bg-center relative" style={{ backgroundImage: `url(${rest.img})` }}>
                   <button className="absolute top-3 right-3 p-2 bg-black/40 backdrop-blur rounded-full hover:bg-white/20 transition-colors">

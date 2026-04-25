@@ -1,13 +1,23 @@
 import mongoose from 'mongoose';
 
 const HotelSchema = new mongoose.Schema({
-  ownerName: { type: String },
+  businessName: { type: String, required: true },
+  ownerName: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  gstNumber: { type: String },
+  city: { type: String, required: true },
+  state: { type: String },
   roomPhoto: { type: String },
   pricePerHour: { type: Number },
   rating: { type: Number },
-  city: { type: String },
-  state: { type: String },
   foodAvailable: { type: Boolean },
+  rooms: [{
+    roomType: String,
+    price: Number,
+    total: Number,
+    booked: { type: Number, default: 0 }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

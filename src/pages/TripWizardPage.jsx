@@ -64,10 +64,13 @@ function TripWizardPage() {
   };
 
   const totalTravelers = travelers.adults + travelers.children;
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
   useEffect(() => {
     if (tripType === 'Solo') {
       setTravelers({ adults: 1, children: 0 });
+    } else if (tripType === 'Couple') {
+      setTravelers({ adults: 2, children: 0 });
     } else if (travelers.adults === 1 && travelers.children === 0) {
       setTravelers({ adults: 2, children: 0 });
     }
@@ -274,6 +277,7 @@ function TripWizardPage() {
                       <label className="block text-sm text-gray-400 mb-2">Start Date</label>
                       <input 
                         type="date" 
+                        min={tomorrow}
                         value={dates.start}
                         onChange={(e) => setDates({...dates, start: e.target.value})}
                         className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#00FF9D]"
@@ -284,6 +288,7 @@ function TripWizardPage() {
                       <label className="block text-sm text-gray-400 mb-2">End Date</label>
                       <input 
                         type="date" 
+                        min={dates.start || tomorrow}
                         value={dates.end}
                         onChange={(e) => setDates({...dates, end: e.target.value})}
                         className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-[#00FF9D]"
@@ -295,7 +300,7 @@ function TripWizardPage() {
                     <p className="text-sm text-[#00FF9D]">Trip duration: {diffDays} days, {diffDays - 1} nights</p>
                   )}
 
-                  {tripType !== 'Solo' && (
+                  {tripType !== 'Solo' && tripType !== 'Couple' && (
                     <div className="pt-4 border-t border-white/10">
                       <label className="block text-sm text-gray-400 mb-4">Travelers</label>
                       <div className="flex items-center justify-between mb-4 bg-black/20 p-4 rounded-xl border border-white/5">

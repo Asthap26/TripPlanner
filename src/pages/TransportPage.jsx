@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Bus, Car, Train, ArrowRightLeft, Calendar, Users, 
@@ -11,6 +11,48 @@ function TransportPage() {
   const [to, setTo] = useState('Shimla');
   const [selectedBus, setSelectedBus] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [agencies, setAgencies] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5555/api/public/agencies')
+      .then(res => res.json())
+      .then(data => setAgencies(data))
+      .catch(err => console.error('Error fetching agencies:', err));
+  }, []);
+
+  const fallbackBuses = [
+    { op: "Himachal RTC", type: "Volvo AC Sleeper (2+1)", dep: "22:00", arr: "06:30", dur: "8h 30m", price: 1450, seats: 12, rating: 4.5 },
+    { op: "Zingbus", type: "Premium AC Seater (2+2)", dep: "23:15", arr: "07:00", dur: "7h 45m", price: 950, seats: 4, rating: 4.8 },
+    { op: "IntrCity SmartBus", type: "AC Sleeper", dep: "21:30", arr: "05:45", dur: "8h 15m", price: 1600, seats: 1, rating: 4.2 },
+  ];
+
+  const fallbackCabs = [
+    { type: "Sedan", models: "Dzire, Etios or similar", pax: 4, bags: 2, ac: true, rating: 4.8, price: 4500, est: "6h 30m" },
+    { type: "SUV", models: "Innova, Ertiga or similar", pax: 6, bags: 4, ac: true, rating: 4.9, price: 6200, est: "6h 45m" },
+    { type: "Tempo Traveller", models: "Force Traveller", pax: 12, bags: 8, ac: true, rating: 4.7, price: 12500, est: "7h 15m" }
+  ];
+
+  const displayBuses = agencies.filter(a => a.busCount > 0).length > 0
+    ? agencies.filter(a => a.busCount > 0).map(a => ({
+        op: a.businessName,
+        type: "Premium AC Sleeper",
+        dep: "22:00", arr: "06:30", dur: "8h 30m",
+        price: (a.pricePerKm * 350) || 1200, // mock distance 350km
+        seats: 12,
+        rating: 4.5
+      }))
+    : fallbackBuses;
+
+  const displayCabs = agencies.filter(a => a.carCount > 0).length > 0
+    ? agencies.filter(a => a.carCount > 0).map(a => ({
+        type: "Premium Cab",
+        models: "Sedan / SUV",
+        pax: 4, bags: 3, ac: true,
+        rating: 4.8,
+        price: (a.pricePerKm * 350) || 4000,
+        est: "6h 30m"
+      }))
+    : fallbackCabs;
   
   const swapLocations = () => {
     setFrom(to);
@@ -165,11 +207,7 @@ function TransportPage() {
           {/* Main Results Area */}
           <div className="flex-1 space-y-4">
             
-            {activeTab === 'bus' && [
-              { op: "Himachal RTC", type: "Volvo AC Sleeper (2+1)", dep: "22:00", arr: "06:30", dur: "8h 30m", price: 1450, seats: 12, rating: 4.5 },
-              { op: "Zingbus", type: "Premium AC Seater (2+2)", dep: "23:15", arr: "07:00", dur: "7h 45m", price: 950, seats: 4, rating: 4.8 },
-              { op: "IntrCity SmartBus", type: "AC Sleeper", dep: "21:30", arr: "05:45", dur: "8h 15m", price: 1600, seats: 1, rating: 4.2 },
-            ].map((bus, i) => (
+            {activeTab === 'bus' && displayBuses.map((bus, i) => (
               <div key={i} className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors">
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="flex-1">
@@ -228,11 +266,7 @@ function TransportPage() {
               </div>
             ))}
 
-            {activeTab === 'cab' && [
-              { type: "Sedan", models: "Dzire, Etios or similar", pax: 4, bags: 2, ac: true, rating: 4.8, price: 4500, est: "6h 30m" },
-              { type: "SUV", models: "Innova, Ertiga or similar", pax: 6, bags: 4, ac: true, rating: 4.9, price: 6200, est: "6h 45m" },
-              { type: "Tempo Traveller", models: "Force Traveller", pax: 12, bags: 8, ac: true, rating: 4.7, price: 12500, est: "7h 15m" }
-            ].map((cab, i) => (
+            {activeTab === 'cab' && displayCabs.map((cab, i) => (
               <div key={i} className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors flex flex-col sm:flex-row justify-between items-center gap-6">
                 <div className="flex items-center gap-6 w-full sm:w-auto">
                   <div className="w-24 h-16 bg-white/5 rounded-lg flex items-center justify-center border border-white/10">

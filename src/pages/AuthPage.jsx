@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Mail, Lock, User, Phone, Loader2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,13 @@ function AuthPage() {
       
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
+
+      if (data.user.role === 'partner') {
+        navigate('/partner-dashboard');
+      } else {
+        const origin = location.state?.from?.pathname || '/dashboard';
+        navigate(origin);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
