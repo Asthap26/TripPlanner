@@ -131,18 +131,30 @@ router.put('/hotel/room/:id', async (req, res) => {
   }
 });
 
-// ACTIVITY ROUTES
-router.get('/activities/:destination', async (req, res) => {
+router.get('/destination/:city', async (req, res) => {
   try {
-    const dest = req.params.destination;
-    // Basic match on city or state (case insensitive if possible, but basic regex here)
-    const activities = await ActivityOwner.find({
-      $or: [
-        { city: { $regex: new RegExp(dest, 'i') } },
-        { state: { $regex: new RegExp(dest, 'i') } }
-      ]
+    const city = req.params.city;
+    // We can also extract state from query string if needed, e.g. req.query.state
+    const { state } = req.query;
+
+    const query = { city: { $regex: new RegExp(`^${city}$`, 'i') } };
+    if (state) {
+      query.state = { $regex: new RegExp(`^${state}$`, 'i') };
+    }
+
+    const [activities, restaurants, hotels, agencies] = await Promise.all([
+      ActivityOwner.find(query),
+      Restaurant.find(query),
+      Hotel.find(query),
+      TravelAgency.find(query)
+    ]);
+
+    res.json({
+      activities,
+      restaurants,
+      hotels,
+      agencies
     });
-    res.json(activities);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

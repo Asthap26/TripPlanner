@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Building2, Briefcase, TrendingUp, Users, CalendarCheck, CheckCircle2, 
-  ShieldCheck, UploadCloud, ArrowRight, Loader2
+  ShieldCheck, UploadCloud, ArrowRight, Loader2, MapPin
 } from 'lucide-react';
+import { indianStatesAndCities } from '../utils/locations';
 
 function PartnerOnboardingPage() {
   const navigate = useNavigate();
@@ -84,7 +85,10 @@ function PartnerOnboardingPage() {
             Grow your business with <br/><span className="text-[#00FF9D]">YATRAsathi</span> travelers.
           </h1>
           <p className="text-xl text-gray-400 mb-10">Join 1,200+ verified businesses across India reaching high-intent travelers every day.</p>
-          <button className="bg-[#00FF9D] text-black px-10 py-4 rounded-xl font-bold text-lg hover:bg-[#00e68d] transition-colors shadow-[0_0_30px_rgba(0,255,157,0.3)]">
+          <button 
+            onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })}
+            className="bg-[#00FF9D] text-black px-10 py-4 rounded-xl font-bold text-lg hover:bg-[#00e68d] transition-colors shadow-[0_0_30px_rgba(0,255,157,0.3)]"
+          >
             List Your Business
           </button>
         </div>
@@ -192,7 +196,7 @@ function PartnerOnboardingPage() {
                 <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-gray-500 shrink-0"/> Upload up to 3 photos</li>
                 <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-gray-500 shrink-0"/> Public ratings visible</li>
               </ul>
-              <button className="w-full py-3 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-colors">Get Started</button>
+              <button onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })} className="w-full py-3 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-colors">Get Started</button>
             </div>
 
             {/* Pro */}
@@ -209,7 +213,7 @@ function PartnerOnboardingPage() {
                 <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-[#00FF9D] shrink-0"/> Advanced analytics dashboard</li>
                 <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-[#00FF9D] shrink-0"/> Unlimited photos</li>
               </ul>
-              <button className="w-full py-3 bg-[#00FF9D] text-black rounded-xl font-bold hover:bg-[#00e68d] transition-colors">Start 14-day Free Trial</button>
+              <button onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })} className="w-full py-3 bg-[#00FF9D] text-black rounded-xl font-bold hover:bg-[#00e68d] transition-colors">Start 14-day Free Trial</button>
             </div>
 
             {/* Premium */}
@@ -225,13 +229,13 @@ function PartnerOnboardingPage() {
                 <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0"/> Custom package creation</li>
                 <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0"/> Dedicated account manager</li>
               </ul>
-              <button className="w-full py-3 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-colors">Contact Sales</button>
+              <button onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })} className="w-full py-3 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-colors">Contact Sales</button>
             </div>
           </div>
         </section>
 
         {/* REGISTRATION FORM & TRUST */}
-        <section className="flex flex-col lg:flex-row gap-12 items-center">
+        <section id="register" className="flex flex-col lg:flex-row gap-12 items-center">
           
           <div className="lg:w-1/2 space-y-8">
             <div>
@@ -293,48 +297,60 @@ function PartnerOnboardingPage() {
                     <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   <div>
+                    <label className="block text-xs text-gray-400 mb-1">Email *</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Phone *</label>
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">State *</label>
+                    <select name="state" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
+                      <option value="" disabled>Choose State</option>
+                      {Object.keys(indianStatesAndCities).map(state => (
+                        <option key={state} value={state} className="bg-gray-900 text-white">{state}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <label className="block text-xs text-gray-400 mb-1">City *</label>
-                    <input type="text" name="city" value={formData.city} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <select name="city" value={formData.city} onChange={handleChange} required disabled={!formData.state} className={`w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none ${!formData.state ? 'opacity-50' : ''}`}>
+                      <option value="" disabled>Choose City</option>
+                      {formData.state && indianStatesAndCities[formData.state].map(city => (
+                        <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 {formData.businessType === 'Travel and Other Activity' && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">State *</label>
-                        <input type="text" name="state" value={formData.state} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
-                      </div>
-                      <div>
                         <label className="block text-xs text-gray-400 mb-1">Price Per Person (₹) *</label>
                         <input type="number" name="pricePerPerson" value={formData.pricePerPerson} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs text-gray-400 mb-1">Timing (e.g., 10:00 AM) *</label>
                         <input type="text" name="time" value={formData.time} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs text-gray-400 mb-1">Duration (e.g., 2 hours) *</label>
                         <input type="text" name="duration" value={formData.duration} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Activity Details</label>
-                      <textarea name="details" value={formData.details} onChange={handleChange} rows="2" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]"></textarea>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Activity Details</label>
+                        <textarea name="details" value={formData.details} onChange={handleChange} rows="2" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]"></textarea>
+                      </div>
                     </div>
                   </>
                 )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">Email *</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">Phone *</label>
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
-                  </div>
-                </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">GST Number (Optional for basic)</label>
                   <input type="text" name="gstNumber" value={formData.gstNumber} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />

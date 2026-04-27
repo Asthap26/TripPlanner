@@ -14,7 +14,7 @@ function ItineraryPage() {
   const tripId = searchParams.get('tripId');
   const [tripData, setTripData] = useState(null);
   
-  const [dbActivities, setDbActivities] = useState([]);
+  const [availablePartners, setAvailablePartners] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [selectedDayToAdd, setSelectedDayToAdd] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -38,11 +38,82 @@ function ItineraryPage() {
 
   useEffect(() => {
     if (destName) {
-      const city = destName.split(',')[0].trim();
-      fetch(`http://localhost:5555/api/partners/activities/${city}`)
+      const parts = destName.split(',');
+      const city = parts[0].trim();
+      const state = parts.length > 1 ? parts[1].trim() : '';
+      
+      fetch(`http://localhost:5555/api/partners/destination/${city}?state=${state}`)
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data)) setDbActivities(data);
+          if (data && !data.error) {
+            const mappedPartners = [];
+            
+            // Map Activities
+            if (data.activities) {
+              data.activities.forEach(a => {
+                mappedPartners.push({
+                  _id: a._id,
+                  type: 'activity',
+                  title: a.businessName,
+                  description: a.details,
+                  price: a.pricePerPerson,
+                  time: a.time,
+                  duration: a.duration,
+                  icon: Activity
+                });
+              });
+            }
+            
+            // Map Hotels
+            if (data.hotels) {
+              data.hotels.forEach(h => {
+                mappedPartners.push({
+                  _id: h._id,
+                  type: 'hotel',
+                  title: h.businessName,
+                  description: `Hotel/Resort by ${h.ownerName}`,
+                  price: h.rooms && h.rooms.length > 0 ? h.rooms[0].pricePerNight : 0,
+                  time: "Check-in: 02:00 PM",
+                  duration: "1 Night",
+                  icon: Hotel
+                });
+              });
+            }
+            
+            // Map Restaurants
+            if (data.restaurants) {
+              data.restaurants.forEach(r => {
+                mappedPartners.push({
+                  _id: r._id,
+                  type: 'meal',
+                  title: r.businessName,
+                  description: `Restaurant by ${r.ownerName}`,
+                  price: r.menu && r.menu.length > 0 ? r.menu[0].price : 0,
+                  time: "12:00 PM or 08:00 PM",
+                  duration: "1-2 Hours",
+                  icon: Coffee
+                });
+              });
+            }
+            
+            // Map Agencies
+            if (data.agencies) {
+              data.agencies.forEach(ag => {
+                mappedPartners.push({
+                  _id: ag._id,
+                  type: 'transport',
+                  title: ag.businessName,
+                  description: `Travel Agency by ${ag.ownerName}`,
+                  price: ag.pricePerKm || 0,
+                  time: "Flexible",
+                  duration: "Variable",
+                  icon: Car
+                });
+              });
+            }
+            
+            setAvailablePartners(mappedPartners);
+          }
         })
         .catch(console.error);
     }
@@ -52,10 +123,19 @@ function ItineraryPage() {
     if (!selectedActivity || !tripId) return;
     setIsAdding(true);
     try {
+      // Create a payload that the backend add-activity route expects or can parse easily
+      const activityPayload = {
+        businessName: selectedActivity.title,
+        time: selectedActivity.time,
+        details: selectedActivity.description,
+        pricePerPerson: selectedActivity.price,
+        duration: selectedActivity.duration
+      };
+
       const res = await fetch(`http://localhost:5555/api/trips/${tripId}/add-activity`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ day: selectedDayToAdd, activity: selectedActivity })
+        body: JSON.stringify({ day: selectedDayToAdd, activity: activityPayload })
       });
       const updatedTrip = await res.json();
       setTripData(updatedTrip);
@@ -285,28 +365,37 @@ function ItineraryPage() {
           </div>
         </div>
 
-        {/* BOTTOM: Adventure Activities */}
         <div className="pt-12">
-          <h2 className="text-2xl font-bold mb-6">Partner Activities in {destName}</h2>
+          <h2 className="text-2xl font-bold mb-6">Available Partners in {destName}</h2>
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {dbActivities.length > 0 ? dbActivities.map((act, i) => (
-              <div key={i} className="min-w-[280px] bg-white/[0.02] border border-white/10 rounded-2xl p-4 flex flex-col">
-                <div className="h-32 bg-white/5 rounded-xl mb-4 bg-[url('https://images.unsplash.com/photo-1522064516314-8f7808da50d9?q=80&w=400&auto=format&fit=crop')] bg-cover"></div>
-                <h3 className="font-bold mb-1">{act.businessName || act.activityName}</h3>
-                <p className="text-xs text-gray-400 mb-2 line-clamp-2">{act.details}</p>
-                <div className="flex justify-between items-center text-sm text-gray-400 mb-4">
-                  <span className="text-[#00FF9D] font-medium">₹{act.pricePerPerson}</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {act.duration}</span>
+            {availablePartners.length > 0 ? availablePartners.map((partner, i) => {
+              const Icon = partner.icon;
+              return (
+                <div key={i} className="min-w-[280px] bg-white/[0.02] border border-white/10 rounded-2xl p-4 flex flex-col relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                    <Icon className="w-8 h-8 text-[#00FF9D]" />
+                  </div>
+                  <div className="h-32 bg-white/5 rounded-xl mb-4 bg-[url('https://images.unsplash.com/photo-1522064516314-8f7808da50d9?q=80&w=400&auto=format&fit=crop')] bg-cover relative">
+                     <div className="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-1 text-xs rounded-md font-medium border border-white/10 capitalize">
+                       {partner.type}
+                     </div>
+                  </div>
+                  <h3 className="font-bold mb-1">{partner.title}</h3>
+                  <p className="text-xs text-gray-400 mb-2 line-clamp-2">{partner.description}</p>
+                  <div className="flex justify-between items-center text-sm text-gray-400 mb-4">
+                    <span className="text-[#00FF9D] font-medium">₹{partner.price || 'Ask Price'}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {partner.duration || 'N/A'}</span>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedActivity(partner)}
+                    className="mt-auto w-full py-2 bg-white/10 hover:bg-[#00FF9D]/20 hover:text-[#00FF9D] rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Add to Trip
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setSelectedActivity(act)}
-                  className="mt-auto w-full py-2 bg-white/10 hover:bg-[#00FF9D]/20 hover:text-[#00FF9D] rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Add to Trip
-                </button>
-              </div>
-            )) : (
-              <p className="text-gray-400 italic">No registered activities available for this destination yet.</p>
+              );
+            }) : (
+              <p className="text-gray-400 italic">No registered partners available for this destination yet.</p>
             )}
           </div>
         </div>
@@ -322,18 +411,28 @@ function ItineraryPage() {
             className="bg-[#111] border border-white/10 p-6 rounded-3xl max-w-sm w-full"
           >
             <h3 className="text-xl font-bold mb-2">Add to Itinerary</h3>
-            <p className="text-gray-400 text-sm mb-6">Select which day to add <strong className="text-white">{selectedActivity.businessName}</strong>.</p>
+            <p className="text-gray-400 text-sm mb-6">Select the date to add <strong className="text-white">{selectedActivity.title}</strong> to your trip.</p>
             
             <div className="mb-6">
-              <label className="block text-sm text-gray-400 mb-2">Select Day</label>
+              <label className="block text-sm text-gray-400 mb-2">Select Date</label>
               <select 
                 value={selectedDayToAdd}
                 onChange={(e) => setSelectedDayToAdd(Number(e.target.value))}
                 className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00FF9D]"
               >
-                {daysData.map(d => (
-                  <option key={d.day} value={d.day}>Day {d.day} - {d.title}</option>
-                ))}
+                {daysData.map(d => {
+                  const dateStr = tripData?.startDate;
+                  let displayStr = `Day ${d.day} - ${d.title}`;
+                  if (dateStr) {
+                    const dateObj = new Date(dateStr);
+                    dateObj.setDate(dateObj.getDate() + (d.day - 1));
+                    const formatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    displayStr = `${formatted} (Day ${d.day}) - ${d.title}`;
+                  }
+                  return (
+                    <option key={d.day} value={d.day}>{displayStr}</option>
+                  );
+                })}
               </select>
             </div>
 

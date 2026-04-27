@@ -3,22 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Search, MapPin, Calendar, Users, Plus, Minus, Check, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 
-const indianStatesAndCities = {
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Mahabaleshwar", "Lonavala"],
-  "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubli", "Hampi", "Coorg", "Gokarna"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Ooty", "Kodaikanal", "Mahabalipuram", "Rameswaram"],
-  "Kerala": ["Thiruvananthapuram", "Kochi", "Munnar", "Wayanad", "Alleppey", "Kovalam", "Varkala"],
-  "Goa": ["North Goa", "South Goa", "Panaji", "Vasco da Gama"],
-  "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur", "Jaisalmer", "Pushkar", "Mount Abu", "Bikaner"],
-  "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala", "Dalhousie", "Kasauli", "Spiti Valley", "Kasol"],
-  "Uttarakhand": ["Dehradun", "Mussoorie", "Nainital", "Rishikesh", "Haridwar", "Auli", "Jim Corbett"],
-  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Kutch", "Gir", "Somnath"],
-  "West Bengal": ["Kolkata", "Darjeeling", "Siliguri", "Sundarbans", "Digha", "Kalimpong"],
-  "Uttar Pradesh": ["Lucknow", "Agra", "Varanasi", "Mathura", "Vrindavan", "Ayodhya"],
-  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Ujjain", "Khajuraho", "Pachmarhi"],
-  "Punjab": ["Amritsar", "Chandigarh", "Ludhiana", "Jalandhar", "Pathankot"],
-  "Jammu & Kashmir": ["Srinagar", "Gulmarg", "Pahalgam", "Sonamarg", "Jammu"]
-};
+import { indianStatesAndCities } from '../utils/locations';
 
 const destinations = ['Shimla', 'Manali', 'Goa', 'Kerala', 'Ladakh', 'Rajasthan', 'Ooty', 'Pondicherry'];
 const tripTypes = ['Solo', 'Couple', 'Family', 'Friends Group'];
@@ -35,6 +20,8 @@ function TripWizardPage() {
   // State for Wizard
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
+  const [cityMode, setCityMode] = useState('single'); // 'single', 'multi-manual', 'multi-ai'
+  const [selectedMultiCities, setSelectedMultiCities] = useState([]);
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [dates, setDates] = useState({ start: '', end: '' });
   const [travelers, setTravelers] = useState({ adults: 2, children: 0 });
@@ -47,6 +34,12 @@ function TripWizardPage() {
   const toggleDestination = (dest) => {
     setSelectedDestinations(prev => 
       prev.includes(dest) ? prev.filter(d => d !== dest) : [...prev, dest]
+    );
+  };
+
+  const toggleMultiCity = (city) => {
+    setSelectedMultiCities(prev => 
+      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
     );
   };
 
@@ -98,12 +91,26 @@ function TripWizardPage() {
     }, 1500);
 
     try {
+      let finalDestination = selectedDestinations.join(', ') || 'Shimla';
+      if (selectedState) {
+        if (cityMode === 'single' && selectedCity) {
+          finalDestination = `${selectedCity}, ${selectedState}`;
+        } else if (cityMode === 'multi-manual' && selectedMultiCities.length > 0) {
+          finalDestination = `${selectedMultiCities.join(' & ')}, ${selectedState}`;
+        } else if (cityMode === 'multi-ai') {
+          finalDestination = `AI Planned Cities, ${selectedState}`;
+        }
+      }
+
       const response = await fetch('http://localhost:5555/api/trips/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: userId,
-          destination: selectedCity ? `${selectedCity}, ${selectedState}` : (selectedDestinations.join(', ') || 'Shimla'),
+          destination: finalDestination,
+          state: selectedState,
+          cityMode: cityMode,
+          selectedCities: cityMode === 'multi-manual' ? selectedMultiCities : (cityMode === 'single' ? [selectedCity] : []),
           startDate: dates.start || new Date().toISOString().split('T')[0],
           endDate: dates.end || new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           travelers: totalTravelers,
@@ -204,6 +211,7 @@ function TripWizardPage() {
                         onChange={(e) => {
                           setSelectedState(e.target.value);
                           setSelectedCity('');
+                          setSelectedMultiCities([]);
                           setSelectedDestinations([]); // Clear quick selections if using dropdowns
                         }}
                         className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-4 text-lg text-white focus:outline-none focus:border-[#00FF9D] focus:ring-1 focus:ring-[#00FF9D] transition-all appearance-none cursor-pointer"
@@ -215,23 +223,88 @@ function TripWizardPage() {
                       </select>
                     </div>
 
+                    {selectedState && (
+                      <div className="flex flex-col gap-2">
+                        <label className="block text-sm text-gray-400">City Mode</label>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => { setCityMode('single'); setSelectedMultiCities([]); }}
+                            className={`flex-1 py-4 px-2 rounded-2xl border transition-all text-sm font-medium ${cityMode === 'single' ? 'bg-[#00FF9D]/10 border-[#00FF9D] text-[#00FF9D]' : 'bg-black/40 border-white/10 text-gray-300 hover:border-white/30'}`}
+                          >
+                            Single City
+                          </button>
+                          <button 
+                            onClick={() => { setCityMode('multi-manual'); setSelectedCity(''); }}
+                            className={`flex-1 py-4 px-2 rounded-2xl border transition-all text-sm font-medium ${cityMode !== 'single' ? 'bg-[#00FF9D]/10 border-[#00FF9D] text-[#00FF9D]' : 'bg-black/40 border-white/10 text-gray-300 hover:border-white/30'}`}
+                          >
+                            Multiple Cities
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedState && cityMode === 'single' && (
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">Select City</label>
                       <select 
                         value={selectedCity}
                         onChange={(e) => setSelectedCity(e.target.value)}
-                        disabled={!selectedState}
-                        className={`w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-4 text-lg text-white focus:outline-none focus:border-[#00FF9D] focus:ring-1 focus:ring-[#00FF9D] transition-all appearance-none ${!selectedState ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-4 text-lg text-white focus:outline-none focus:border-[#00FF9D] focus:ring-1 focus:ring-[#00FF9D] transition-all appearance-none cursor-pointer"
                       >
-                        <option value="" disabled className="text-gray-500">
-                          {!selectedState ? 'Select a state first' : 'Choose a City...'}
-                        </option>
-                        {selectedState && indianStatesAndCities[selectedState].map(city => (
+                        <option value="" disabled className="text-gray-500">Choose a City...</option>
+                        {indianStatesAndCities[selectedState].map(city => (
                           <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
                         ))}
                       </select>
                     </div>
-                  </div>
+                  )}
+
+                  {selectedState && cityMode !== 'single' && (
+                    <div className="bg-black/20 p-4 rounded-2xl border border-white/5 space-y-4 mt-4">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => setCityMode('multi-ai')}
+                          className={`flex-1 py-3 px-2 rounded-xl border transition-all text-sm font-medium ${cityMode === 'multi-ai' ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 text-gray-300 hover:border-white/30'}`}
+                        >
+                          ✨ Let AI Plan Cities
+                        </button>
+                        <button 
+                          onClick={() => setCityMode('multi-manual')}
+                          className={`flex-1 py-3 px-2 rounded-xl border transition-all text-sm font-medium ${cityMode === 'multi-manual' ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 text-gray-300 hover:border-white/30'}`}
+                        >
+                          Choose Manually
+                        </button>
+                      </div>
+
+                      {cityMode === 'multi-ai' && (
+                        <div className="text-sm text-[#00FF9D] bg-[#00FF9D]/10 p-3 rounded-lg flex gap-2 items-start">
+                          <Check className="w-4 h-4 shrink-0 mt-0.5" />
+                          <p>We'll analyze {selectedState} and build an optimal multi-city itinerary traversing the best locations based on your trip duration.</p>
+                        </div>
+                      )}
+
+                      {cityMode === 'multi-manual' && (
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-2">Select Cities to Visit</label>
+                          <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10">
+                            {indianStatesAndCities[selectedState].map(city => {
+                              const isSelected = selectedMultiCities.includes(city);
+                              return (
+                                <button
+                                  key={city}
+                                  onClick={() => toggleMultiCity(city)}
+                                  className={`px-3 py-1.5 rounded-full border text-sm transition-all ${isSelected ? 'bg-[#00FF9D]/20 border-[#00FF9D] text-[#00FF9D]' : 'bg-black/40 border-white/10 text-gray-300'}`}
+                                >
+                                  {city}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {!selectedState && (
                     <div className="pt-4 border-t border-white/10">

@@ -5,11 +5,13 @@ import ActivityOwner from '../models/ActivityOwner.js';
 
 const router = express.Router();
 
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
 router.post('/generate', async (req, res) => {
   try {
-    const { destination, startDate, endDate, travelers, budget, totalBudget, diffDays, interests } = req.body;
+    const { destination, state, cityMode, selectedCities, startDate, endDate, travelers, budget, totalBudget, diffDays, interests } = req.body;
     
-    console.log(`Generating realistic itinerary for ${destination} for ${diffDays} days...`);
+    console.log(`Generating AI itinerary for ${destination} for ${diffDays} days...`);
     
     const daysCount = diffDays || 5;
     const finalBudget = totalBudget || 50000;
@@ -27,65 +29,114 @@ router.post('/generate', async (req, res) => {
         food: food_budget,
         activities: activities_budget
     };
+
+    // Prepare context for AI
+    let travelContext = `Destination: ${destination}. Duration: ${daysCount} days. Travelers: ${travelers}. Budget Category: ${budget}. Interests: ${interests ? interests.join(', ') : 'General tourist spots'}. `;
     
-    // Fetch registered activities for this destination
-    const destName = destination.split(',')[0].trim();
-    const dbActivities = await ActivityOwner.find({
-      $or: [
-        { city: { $regex: new RegExp(destName, 'i') } },
-        { state: { $regex: new RegExp(destName, 'i') } }
-      ]
-    });
-    
-    const days = [];
-    
-    for (let day = 1; day <= daysCount; day++) {
-        let title, activities;
-        if (day === 1) {
-            title = "Arrival & Settling In";
-            activities = [
-                { time: "10:00 AM", title: `Arrive in ${destination}`, type: "transport", description: "Reach destination and transfer to hotel.", cost: Math.floor(transport_budget * 0.2) },
-                { time: "12:30 PM", title: "Check-in & Rest", type: "hotel", description: "Settle into your accommodation.", cost: 0 },
-                { time: "02:00 PM", title: "Welcome Lunch", type: "meal", description: "Try local delicacies nearby.", cost: Math.floor(food_budget / daysCount * 0.4) },
-                { time: "05:00 PM", title: "Evening Walk", type: "activity", description: "Explore the immediate surroundings.", cost: 0 }
-            ];
-        } else if (day === daysCount) {
-            title = "Departure & Souvenirs";
-            activities = [
-                { time: "09:00 AM", title: "Breakfast & Packing", type: "meal", description: "Final breakfast at the hotel.", cost: Math.floor(food_budget / daysCount * 0.3) },
-                { time: "11:00 AM", title: "Souvenir Shopping", type: "activity", description: "Pick up memories to take home.", cost: Math.floor(activities_budget * 0.2) },
-                { time: "02:00 PM", title: "Departure", type: "transport", description: "Head back home.", cost: Math.floor(transport_budget * 0.2) }
-            ];
-        } else {
-            title = `Exploring ${destination} - Day ${day}`;
-            
-            let morningAct = { time: "09:00 AM", title: "Morning Excursion", type: "activity", description: "Visit a top-rated local attraction.", cost: Math.floor(activities_budget / daysCount) };
-            if (dbActivities.length > 0) {
-               const a = dbActivities[day % dbActivities.length];
-               morningAct = { 
-                 time: a.time || "09:00 AM", 
-                 title: a.businessName || "Featured Activity", 
-                 type: "activity", 
-                 description: a.details || "A premium local experience from our partners.", 
-                 cost: a.pricePerPerson || 0 
-               };
+    if (cityMode === 'multi-ai') {
+      travelContext += `Task: Create an optimal multi-city road trip or hopping itinerary within the state of ${state}. Select 2-4 best cities based on the duration. Include travel time between cities as transport activities. `;
+    } else if (cityMode === 'multi-manual' && selectedCities && selectedCities.length > 0) {
+      travelContext += `Task: Create a multi-city itinerary visiting these specific cities: ${selectedCities.join(', ')}. Allocate days appropriately and include inter-city travel as transport activities. `;
+    } else {
+      travelContext += `Task: Create a detailed daily itinerary focused entirely on ${destination}. `;
+    }
+
+    const systemPrompt = `You are an expert local Indian travel agent building highly realistic itineraries.
+    You must return a JSON response matching exactly this structure:
+    {
+      "overview": "A catchy 1 sentence overview",
+      "days": [
+        {
+          "day": 1,
+          "title": "Short title of day (e.g. Arrival in CityName)",
+          "activities": [
+            {
+              "time": "10:00 AM",
+              "title": "Action (e.g. Flight/Train/Drive or Sightseeing)",
+              "type": "transport", // one of: transport, hotel, meal, activity
+              "description": "Brief engaging description",
+              "cost": 500
             }
-            
-            activities = [
-                morningAct,
-                { time: "01:00 PM", title: "Lunch Break", type: "meal", description: "Refuel with some good food.", cost: Math.floor(food_budget / daysCount * 0.4) },
-                { time: "03:00 PM", title: "Afternoon Sightseeing", type: "activity", description: "Continue exploring.", cost: Math.floor(activities_budget / daysCount) },
-                { time: "07:30 PM", title: "Dinner", type: "meal", description: "Relaxing dinner experience.", cost: Math.floor(food_budget / daysCount * 0.5) }
-            ];
+          ]
         }
-            
-        days.push({ day, title, activities });
+      ]
+    }
+    Rules:
+    1. Exactly ${daysCount} days.
+    2. Minimum 3 activities per day (include meals, check-ins, travel).
+    3. Costs should be in INR (₹) per person.
+    4. If multi-city, add realistic transport times (e.g., "Drive from Ahmedabad to Surat (4 hrs)") as a 'transport' type activity.
+    5. Mention real famous places, cafes, and spots.
+    ONLY output the JSON. Do not use markdown backticks around the json.`;
+
+    let generatedDays = [];
+    let overview = `A carefully planned ${daysCount}-day ${budget} trip to ${destination} for ${travelers} people.`;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (apiKey) {
+      try {
+        console.log("Calling Gemini API...");
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+        const result = await model.generateContent(`${systemPrompt}\n\nUser Request: ${travelContext}`);
+        const responseText = result.response.text().trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
+        
+        const aiData = JSON.parse(responseText);
+        generatedDays = aiData.days;
+        overview = aiData.overview || overview;
+        console.log("Gemini generation successful!");
+      } catch (aiError) {
+        console.error("Gemini API Error:", aiError.message);
+        console.log("Falling back to basic generation...");
+      }
+    } else {
+      console.log("No GEMINI_API_KEY found, using dynamic fallback generator.");
+    }
+
+    // Fallback if AI fails or key is missing
+    if (!generatedDays || generatedDays.length === 0) {
+      const citiesToVisit = (cityMode === 'multi-manual' && selectedCities) ? selectedCities : 
+                            (cityMode === 'multi-ai' ? ['Ahmedabad', 'Surat'] : [destination]);
+      
+      for (let day = 1; day <= daysCount; day++) {
+        const currentCity = citiesToVisit[(day - 1) % citiesToVisit.length];
+        const nextCity = citiesToVisit[day % citiesToVisit.length];
+        const isTravelDay = day > 1 && currentCity !== citiesToVisit[(day - 2) % citiesToVisit.length];
+        
+        let title = `Exploring ${currentCity}`;
+        if (day === 1) title = `Arrival in ${currentCity}`;
+        if (day === daysCount) title = `Departure from ${currentCity}`;
+        if (isTravelDay) title = `Travel to ${currentCity}`;
+
+        const acts = [];
+        if (isTravelDay) {
+          acts.push({ time: "09:00 AM", title: `Travel to ${currentCity}`, type: "transport", description: `Drive or train to ${currentCity}.`, cost: 1000 });
+          acts.push({ time: "01:00 PM", title: "Check-in & Lunch", type: "hotel", description: `Settle in at ${currentCity}.`, cost: 500 });
+        } else if (day === 1) {
+          acts.push({ time: "10:00 AM", title: `Arrive in ${currentCity}`, type: "transport", description: "Reach destination and transfer to hotel.", cost: 800 });
+          acts.push({ time: "12:30 PM", title: "Check-in", type: "hotel", description: "Settle into your accommodation.", cost: 0 });
+        } else {
+          acts.push({ time: "09:00 AM", title: `Morning at ${currentCity} Highlights`, type: "activity", description: "Visit top local attractions.", cost: 400 });
+        }
+
+        acts.push({ time: "02:00 PM", title: "Lunch", type: "meal", description: "Try local delicacies.", cost: 600 });
+        acts.push({ time: "05:00 PM", title: "Evening Walk", type: "activity", description: "Explore the immediate surroundings.", cost: 0 });
+        
+        if (day === daysCount) {
+           acts.push({ time: "08:00 PM", title: "Departure", type: "transport", description: "Head back home.", cost: 800 });
+        } else {
+           acts.push({ time: "08:00 PM", title: "Dinner", type: "meal", description: "Relaxing dinner experience.", cost: 800 });
+        }
+
+        generatedDays.push({ day, title, activities: acts });
+      }
     }
 
     const itinerary = {
-        overview: `A carefully planned ${daysCount}-day ${budget} trip to ${destination} for ${travelers} people.`,
+        overview,
         budgetBreakdown,
-        days
+        days: generatedDays
     };
 
     // Save to MongoDB

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, CalendarCheck, Utensils, 
-  Car, Hotel, DollarSign, Clock, LogOut, Plus
+  Car, Hotel, DollarSign, Clock, LogOut, Plus, MapPin
 } from 'lucide-react';
 
 function PartnerDashboardPage() {
@@ -53,7 +53,8 @@ function PartnerDashboardPage() {
             <div className="w-10 h-10 rounded-xl bg-[#00FF9D]/20 flex items-center justify-center">
               {user.partnerType === 'Restaurant' ? <Utensils className="w-5 h-5 text-[#00FF9D]"/> :
                user.partnerType === 'Travel Agency' ? <Car className="w-5 h-5 text-[#00FF9D]"/> :
-               <Hotel className="w-5 h-5 text-[#00FF9D]"/>}
+               user.partnerType === 'Hotel / Resort' ? <Hotel className="w-5 h-5 text-[#00FF9D]"/> :
+               <MapPin className="w-5 h-5 text-[#00FF9D]"/>}
             </div>
             <div>
               <h1 className="text-xl font-bold">{user.name} Management</h1>
@@ -71,6 +72,7 @@ function PartnerDashboardPage() {
         {user.partnerType === 'Restaurant' && <RestaurantDashboard partnerData={partnerData} refresh={() => fetchPartnerData(user.email, user.partnerType)} user={user} />}
         {user.partnerType === 'Travel Agency' && <AgencyDashboard partnerData={partnerData} refresh={() => fetchPartnerData(user.email, user.partnerType)} user={user} />}
         {user.partnerType === 'Hotel / Resort' && <HotelDashboard partnerData={partnerData} refresh={() => fetchPartnerData(user.email, user.partnerType)} user={user} />}
+        {user.partnerType === 'Travel and Other Activity' && <ActivityDashboard partnerData={partnerData} refresh={() => fetchPartnerData(user.email, user.partnerType)} user={user} />}
       </main>
     </div>
   );
@@ -364,6 +366,44 @@ function StatCard({ icon, title, value, trend }) {
         <p className="text-sm text-gray-400 mb-1">{title}</p>
         <h3 className="text-3xl font-bold mb-2">{value}</h3>
         <p className="text-xs text-[#00FF9D]">{trend}</p>
+      </div>
+    </div>
+  );
+}
+
+function ActivityDashboard({ partnerData, refresh, user }) {
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard icon={<MapPin/>} title="Location" value={partnerData.city} trend={partnerData.state} />
+        <StatCard icon={<DollarSign/>} title="Price Per Person" value={`₹${partnerData.pricePerPerson || 0}`} trend={`Duration: ${partnerData.duration || 'N/A'}`} />
+        <StatCard icon={<Clock/>} title="Timing" value={partnerData.time || 'N/A'} trend="Active Listing" />
+      </div>
+
+      <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8">
+        <h2 className="text-2xl font-bold mb-6">Activity Details Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+          <div>
+            <p className="text-gray-400 mb-1">Business Name</p>
+            <p className="text-lg font-bold">{partnerData.businessName}</p>
+          </div>
+          <div>
+            <p className="text-gray-400 mb-1">Owner Name</p>
+            <p className="text-lg font-bold">{partnerData.ownerName}</p>
+          </div>
+          <div>
+            <p className="text-gray-400 mb-1">Location</p>
+            <p className="text-lg font-bold">{partnerData.city}, {partnerData.state}</p>
+          </div>
+          <div>
+            <p className="text-gray-400 mb-1">Contact</p>
+            <p className="text-lg font-bold">{partnerData.email} • {partnerData.phone}</p>
+          </div>
+          <div className="col-span-2">
+            <p className="text-gray-400 mb-1">Description</p>
+            <p className="text-lg bg-black/40 p-4 rounded-xl border border-white/5">{partnerData.details || "No details provided."}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

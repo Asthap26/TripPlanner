@@ -2,8 +2,14 @@ import mongoose from 'mongoose';
 
 const TripSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  destination: { type: String },
   state: { type: String },
   city: { type: String },
+  startDate: { type: String },
+  endDate: { type: String },
+  travelers: { type: Number },
+  diffDays: { type: Number },
+  interests: [{ type: String }],
   days: { type: Number },
   members: { type: Number },
   budget: { type: String },

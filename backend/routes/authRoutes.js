@@ -13,9 +13,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'yatrasathi_super_secret_key_123';
 // Register Partner
 router.post('/register-partner', async (req, res) => {
   try {
-    const { businessName, businessType, ownerName, city, email, phone, gstNumber, password } = req.body;
+    const { businessName, businessType, ownerName, city, state, email, phone, gstNumber, password } = req.body;
 
-    if (!businessName || !businessType || !ownerName || !city || !email || !phone || !password) {
+    if (!businessName || !businessType || !ownerName || !city || !state || !email || !phone || !password) {
       return res.status(400).json({ error: 'All fields except GST Number are required' });
     }
 
@@ -26,7 +26,8 @@ router.post('/register-partner', async (req, res) => {
       email,
       phone,
       gstNumber,
-      city
+      city,
+      state
     };
 
     if (businessType === 'Restaurant') {
@@ -38,7 +39,6 @@ router.post('/register-partner', async (req, res) => {
     } else if (businessType === 'Travel and Other Activity') {
       newPartner = new ActivityOwner({
         ...partnerData,
-        state: req.body.state,
         pricePerPerson: req.body.pricePerPerson,
         time: req.body.time,
         duration: req.body.duration,
