@@ -11,5 +11,4 @@ const UserSchema = new mongoose.Schema({
   partnerType: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
-
 export default mongoose.model('User', UserSchema);
