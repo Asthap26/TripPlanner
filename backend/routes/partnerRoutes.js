@@ -2,6 +2,7 @@ import express from 'express';
 import Restaurant from '../models/Restaurant.js';
 import TravelAgency from '../models/TravelAgency.js';
 import Hotel from '../models/Hotel.js';
+import ActivityOwner from '../models/ActivityOwner.js';
 
 const router = express.Router();
 
@@ -18,6 +19,8 @@ router.get('/me', async (req, res) => {
       partner = await TravelAgency.findOne({ email });
     } else if (type === 'Hotel / Resort') {
       partner = await Hotel.findOne({ email });
+    } else if (type === 'Travel and Other Activity') {
+      partner = await ActivityOwner.findOne({ email });
     }
 
     if (!partner) return res.status(404).json({ error: 'Partner not found' });
@@ -123,6 +126,23 @@ router.put('/hotel/room/:id', async (req, res) => {
 
     await partner.save();
     res.json(partner);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ACTIVITY ROUTES
+router.get('/activities/:destination', async (req, res) => {
+  try {
+    const dest = req.params.destination;
+    // Basic match on city or state (case insensitive if possible, but basic regex here)
+    const activities = await ActivityOwner.find({
+      $or: [
+        { city: { $regex: new RegExp(dest, 'i') } },
+        { state: { $regex: new RegExp(dest, 'i') } }
+      ]
+    });
+    res.json(activities);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

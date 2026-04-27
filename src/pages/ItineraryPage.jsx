@@ -13,6 +13,11 @@ function ItineraryPage() {
   const [searchParams] = useSearchParams();
   const tripId = searchParams.get('tripId');
   const [tripData, setTripData] = useState(null);
+  
+  const [dbActivities, setDbActivities] = useState([]);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [selectedDayToAdd, setSelectedDayToAdd] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
     if (tripId) {
@@ -30,6 +35,38 @@ function ItineraryPage() {
   const budgetBreakdown = tripData?.itinerary?.budgetBreakdown || { stays: 45, transport: 25, food: 20, activities: 10 };
   const daysData = tripData?.itinerary?.days || [];
   const currentDayData = daysData.find(d => d.day === activeDay) || null;
+
+  useEffect(() => {
+    if (destName) {
+      const city = destName.split(',')[0].trim();
+      fetch(`http://localhost:5555/api/partners/activities/${city}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setDbActivities(data);
+        })
+        .catch(console.error);
+    }
+  }, [destName]);
+
+  const handleAddActivity = async () => {
+    if (!selectedActivity || !tripId) return;
+    setIsAdding(true);
+    try {
+      const res = await fetch(`http://localhost:5555/api/trips/${tripId}/add-activity`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ day: selectedDayToAdd, activity: selectedActivity })
+      });
+      const updatedTrip = await res.json();
+      setTripData(updatedTrip);
+      setSelectedActivity(null);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to add activity');
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-sans selection:bg-[#00FF9D] selection:text-black pb-20">
@@ -250,30 +287,74 @@ function ItineraryPage() {
 
         {/* BOTTOM: Adventure Activities */}
         <div className="pt-12">
-          <h2 className="text-2xl font-bold mb-6">Recommended Activities</h2>
+          <h2 className="text-2xl font-bold mb-6">Partner Activities in {destName}</h2>
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {[
-              {name: 'Paragliding in Kullu', price: '₹2,500', difficulty: 'Moderate'},
-              {name: 'Jakhu Temple Trek', price: 'Free', difficulty: 'Easy'},
-              {name: 'River Rafting', price: '₹1,500', difficulty: 'Hard'},
-              {name: 'Ice Skating', price: '₹300', difficulty: 'Moderate'}
-            ].map((act, i) => (
-              <div key={i} className="min-w-[240px] bg-white/[0.02] border border-white/10 rounded-2xl p-4 flex flex-col">
+            {dbActivities.length > 0 ? dbActivities.map((act, i) => (
+              <div key={i} className="min-w-[280px] bg-white/[0.02] border border-white/10 rounded-2xl p-4 flex flex-col">
                 <div className="h-32 bg-white/5 rounded-xl mb-4 bg-[url('https://images.unsplash.com/photo-1522064516314-8f7808da50d9?q=80&w=400&auto=format&fit=crop')] bg-cover"></div>
-                <h3 className="font-bold mb-1">{act.name}</h3>
+                <h3 className="font-bold mb-1">{act.businessName || act.activityName}</h3>
+                <p className="text-xs text-gray-400 mb-2 line-clamp-2">{act.details}</p>
                 <div className="flex justify-between items-center text-sm text-gray-400 mb-4">
-                  <span>{act.price}</span>
-                  <span>{act.difficulty}</span>
+                  <span className="text-[#00FF9D] font-medium">₹{act.pricePerPerson}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {act.duration}</span>
                 </div>
-                <button className="mt-auto w-full py-2 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                  <Plus className="w-4 h-4" /> Add
+                <button 
+                  onClick={() => setSelectedActivity(act)}
+                  className="mt-auto w-full py-2 bg-white/10 hover:bg-[#00FF9D]/20 hover:text-[#00FF9D] rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Add to Trip
                 </button>
               </div>
-            ))}
+            )) : (
+              <p className="text-gray-400 italic">No registered activities available for this destination yet.</p>
+            )}
           </div>
         </div>
 
       </main>
+
+      {/* Add Activity Modal */}
+      {selectedActivity && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#111] border border-white/10 p-6 rounded-3xl max-w-sm w-full"
+          >
+            <h3 className="text-xl font-bold mb-2">Add to Itinerary</h3>
+            <p className="text-gray-400 text-sm mb-6">Select which day to add <strong className="text-white">{selectedActivity.businessName}</strong>.</p>
+            
+            <div className="mb-6">
+              <label className="block text-sm text-gray-400 mb-2">Select Day</label>
+              <select 
+                value={selectedDayToAdd}
+                onChange={(e) => setSelectedDayToAdd(Number(e.target.value))}
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00FF9D]"
+              >
+                {daysData.map(d => (
+                  <option key={d.day} value={d.day}>Day {d.day} - {d.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setSelectedActivity(null)}
+                className="flex-1 py-3 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAddActivity}
+                disabled={isAdding}
+                className="flex-1 py-3 rounded-xl bg-[#00FF9D] text-black font-bold hover:bg-[#00e68d] transition-colors disabled:opacity-50"
+              >
+                {isAdding ? 'Adding...' : 'Confirm'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

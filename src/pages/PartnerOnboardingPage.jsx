@@ -17,7 +17,12 @@ function PartnerOnboardingPage() {
     email: '',
     phone: '',
     gstNumber: '',
-    password: ''
+    password: '',
+    state: '',
+    pricePerPerson: '',
+    time: '',
+    duration: '',
+    details: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -99,13 +104,22 @@ function PartnerOnboardingPage() {
               </button>
               <button 
                 onClick={() => setPartnerType('agency')}
-                className={`flex items-center gap-2 px-8 py-3 rounded-lg font-semibold transition-colors z-10 ${partnerType === 'agency' ? 'text-black' : 'text-gray-400 hover:text-white'}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors z-10 ${partnerType === 'agency' ? 'text-black' : 'text-gray-400 hover:text-white'}`}
               >
                 <Briefcase className="w-5 h-5" /> Travel Agency
               </button>
+              <button 
+                onClick={() => {
+                  setPartnerType('activity');
+                  setFormData({ ...formData, businessType: 'Travel and Other Activity' });
+                }}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors z-10 ${partnerType === 'activity' ? 'text-black' : 'text-gray-400 hover:text-white'}`}
+              >
+                <MapPin className="w-5 h-5" /> Activity / Travel
+              </button>
               <div 
-                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#00FF9D] rounded-lg transition-all duration-300 ease-out"
-                style={{ left: partnerType === 'restaurant' ? '4px' : 'calc(50% + 2px)' }}
+                className="absolute top-1 bottom-1 w-[calc(33.33%-4px)] bg-[#00FF9D] rounded-lg transition-all duration-300 ease-out"
+                style={{ left: partnerType === 'restaurant' ? '4px' : partnerType === 'agency' ? 'calc(33.33% + 2px)' : 'calc(66.66% + 0px)' }}
               />
             </div>
           </div>
@@ -269,6 +283,7 @@ function PartnerOnboardingPage() {
                       <option>Restaurant</option>
                       <option>Travel Agency</option>
                       <option>Hotel / Resort</option>
+                      <option>Travel and Other Activity</option>
                     </select>
                   </div>
                 </div>
@@ -282,6 +297,34 @@ function PartnerOnboardingPage() {
                     <input type="text" name="city" value={formData.city} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                 </div>
+                {formData.businessType === 'Travel and Other Activity' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">State *</label>
+                        <input type="text" name="state" value={formData.state} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Price Per Person (₹) *</label>
+                        <input type="number" name="pricePerPerson" value={formData.pricePerPerson} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Timing (e.g., 10:00 AM) *</label>
+                        <input type="text" name="time" value={formData.time} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Duration (e.g., 2 hours) *</label>
+                        <input type="text" name="duration" value={formData.duration} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Activity Details</label>
+                      <textarea name="details" value={formData.details} onChange={handleChange} rows="2" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]"></textarea>
+                    </div>
+                  </>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Email *</label>

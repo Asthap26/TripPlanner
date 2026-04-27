@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Restaurant from '../models/Restaurant.js';
 import TravelAgency from '../models/TravelAgency.js';
 import Hotel from '../models/Hotel.js';
+import ActivityOwner from '../models/ActivityOwner.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'yatrasathi_super_secret_key_123';
@@ -34,6 +35,15 @@ router.post('/register-partner', async (req, res) => {
       newPartner = new TravelAgency(partnerData);
     } else if (businessType === 'Hotel / Resort') {
       newPartner = new Hotel(partnerData);
+    } else if (businessType === 'Travel and Other Activity') {
+      newPartner = new ActivityOwner({
+        ...partnerData,
+        state: req.body.state,
+        pricePerPerson: req.body.pricePerPerson,
+        time: req.body.time,
+        duration: req.body.duration,
+        details: req.body.details
+      });
     } else {
       return res.status(400).json({ error: 'Invalid business type' });
     }

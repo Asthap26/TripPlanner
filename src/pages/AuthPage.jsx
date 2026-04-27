@@ -102,6 +102,11 @@ function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl"
           >
+            {location.state?.from?.pathname === '/plan' && (
+              <div className="mb-6 p-4 bg-[#00FF9D]/10 border border-[#00FF9D]/30 text-[#00FF9D] text-sm rounded-xl text-center font-medium">
+                Please login first to start planning your trip.
+              </div>
+            )}
             {/* Toggle Tabs */}
             <div className="flex bg-black/50 p-1 rounded-xl mb-8 relative">
               <button 
