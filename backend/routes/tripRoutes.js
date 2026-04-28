@@ -9,7 +9,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 router.post('/generate', async (req, res) => {
   try {
-    const { destination, state, cityMode, selectedCities, startDate, endDate, travelers, budget, totalBudget, diffDays, interests } = req.body;
+    const { destination, state, cityMode, selectedCities, startDate, endDate, travelers, budget, totalBudget, diffDays, interests, selectedPartners } = req.body;
     
     console.log(`Generating AI itinerary for ${destination} for ${diffDays} days...`);
     
@@ -33,6 +33,10 @@ router.post('/generate', async (req, res) => {
     // Prepare context for AI
     let travelContext = `Destination: ${destination}. Duration: ${daysCount} days. Travelers: ${travelers}. Budget Category: ${budget}. Interests: ${interests ? interests.join(', ') : 'General tourist spots'}. `;
     
+    if (selectedPartners && selectedPartners.length > 0) {
+      travelContext += `The user has explicitly selected to visit the following places: ${selectedPartners.map(p => p.businessName).join(', ')}. You MUST include them in the daily itinerary. Note that these are pre-booked via our platform. `;
+    }
+
     if (cityMode === 'multi-ai') {
       travelContext += `Task: Create an optimal multi-city road trip or hopping itinerary within the state of ${state}. Select 2-4 best cities based on the duration. Include travel time between cities as transport activities. `;
     } else if (cityMode === 'multi-manual' && selectedCities && selectedCities.length > 0) {

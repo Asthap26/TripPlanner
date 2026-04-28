@@ -210,6 +210,26 @@ function ItineraryPage() {
           </div>
         </div>
 
+        {tripData?.selectedPartners && tripData.selectedPartners.length > 0 && (
+          <div className="bg-[#00FF9D]/5 border border-[#00FF9D]/20 rounded-3xl p-6 mb-8">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Check className="w-6 h-6 text-[#00FF9D]" />
+              Your Pre-Booked YATRAsathi Offers
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {tripData.selectedPartners.map((partner, idx) => (
+                <div key={idx} className="bg-black/40 border border-white/10 p-4 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-[#00FF9D] text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                    20% DISCOUNT APPLIED
+                  </div>
+                  <h3 className="font-bold text-white text-lg pr-8">{partner.businessName}</h3>
+                  <p className="text-sm text-gray-400">{partner.city}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* MAIN LAYOUT */}
         <div className="flex flex-col lg:flex-row gap-8">
           

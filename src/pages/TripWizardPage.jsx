@@ -29,6 +29,10 @@ function TripWizardPage() {
   const [budget, setBudget] = useState(25000);
   const [preferences, setPreferences] = useState([]);
   const [hotelType, setHotelType] = useState('3-star');
+  const [askPartners, setAskPartners] = useState(null); // null = haven't asked, true = yes, false = no
+  const [partnersData, setPartnersData] = useState({ activities: [], restaurants: [], hotels: [], agencies: [] });
+  const [selectedPartners, setSelectedPartners] = useState([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
 
   // Handlers
   const toggleDestination = (dest) => {
@@ -47,6 +51,32 @@ function TripWizardPage() {
     setPreferences(prev => 
       prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref]
     );
+  };
+
+  const togglePartner = (partner) => {
+    setSelectedPartners(prev => {
+      const exists = prev.find(p => p._id === partner._id);
+      if (exists) return prev.filter(p => p._id !== partner._id);
+      return [...prev, partner];
+    });
+  };
+
+  const fetchPartners = async () => {
+    setIsLoadingPartners(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (selectedState) queryParams.append('state', selectedState);
+      if (cityMode === 'single' && selectedCity) queryParams.append('city', selectedCity);
+      
+      const res = await fetch(`http://localhost:5555/api/partners/search?${queryParams.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPartnersData(data);
+      }
+    } catch (err) {
+      console.error("Error fetching partners:", err);
+    }
+    setIsLoadingPartners(false);
   };
 
   const calculateBudgetTier = (val) => {
@@ -117,7 +147,8 @@ function TripWizardPage() {
           budget: calculateBudgetTier(budget),
           totalBudget: budget * totalTravelers,
           diffDays: diffDays || 5,
-          interests: preferences
+          interests: preferences,
+          selectedPartners: selectedPartners
         })
       });
 
@@ -153,7 +184,7 @@ function TripWizardPage() {
           <motion.div 
             className="h-full bg-[#00FF9D]"
             initial={{ width: '0%' }}
-            animate={{ width: `${(step / 4) * 100}%` }}
+            animate={{ width: `${(step / 5) * 100}%` }}
             transition={{ duration: 0.3 }}
           />
         </div>
@@ -179,9 +210,9 @@ function TripWizardPage() {
             
             {/* Step Indicators */}
             <div className="flex items-center justify-between mb-12">
-              <span className="text-sm font-semibold text-[#00FF9D]">Step {step} of 4</span>
+              <span className="text-sm font-semibold text-[#00FF9D]">Step {step} of 5</span>
               <div className="flex gap-2">
-                {[1, 2, 3, 4].map(i => (
+                {[1, 2, 3, 4, 5].map(i => (
                   <button 
                     key={i}
                     onClick={() => setStep(i)}
@@ -514,6 +545,102 @@ function TripWizardPage() {
                   </div>
                 </motion.div>
               )}
+
+              {/* STEP 5 */}
+              {step === 5 && (
+                <motion.div
+                  key="step5"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8 min-h-[300px]"
+                >
+                  <h2 className="text-3xl font-bold">Exclusive YATRAsathi Offers</h2>
+                  
+                  {askPartners === null && (
+                    <div className="text-center py-8">
+                      <p className="text-lg text-gray-300 mb-8">
+                        Do you want to add registered hotels, restaurants, travel agencies, or other activities from our verified system? 
+                        <br/><span className="text-[#00FF9D] font-bold">Enjoy a 20% discount on all platform bookings!</span>
+                      </p>
+                      <div className="flex gap-4 justify-center">
+                        <button 
+                          onClick={() => { setAskPartners(true); fetchPartners(); }}
+                          className="bg-[#00FF9D] text-black px-6 py-3 rounded-xl font-bold hover:bg-[#00e68d] transition-colors"
+                        >
+                          Yes, Show Me Offers
+                        </button>
+                        <button 
+                          onClick={() => setAskPartners(false)}
+                          className="bg-white/10 border border-white/20 text-white px-6 py-3 rounded-xl font-medium hover:bg-white/20 transition-colors"
+                        >
+                          No, Just Generate Itinerary
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {askPartners === false && (
+                    <div className="text-center py-12">
+                      <p className="text-xl text-gray-400">Alright, we'll generate the itinerary with standard recommendations.</p>
+                      <p className="text-sm mt-4 text-[#00FF9D]">You're all set! Click 'Generate' below.</p>
+                    </div>
+                  )}
+
+                  {askPartners === true && (
+                    <div className="space-y-6">
+                      {isLoadingPartners ? (
+                        <div className="flex justify-center py-12">
+                          <Loader2 className="w-8 h-8 text-[#00FF9D] animate-spin" />
+                        </div>
+                      ) : (
+                        <div className="space-y-8 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                          {['hotels', 'restaurants', 'activities', 'agencies'].map((category) => {
+                            if (!partnersData[category] || partnersData[category].length === 0) return null;
+                            return (
+                              <div key={category}>
+                                <h3 className="text-xl font-bold mb-4 capitalize border-b border-white/10 pb-2">{category}</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  {partnersData[category].map(partner => {
+                                    const isSelected = selectedPartners.find(p => p._id === partner._id);
+                                    return (
+                                      <div 
+                                        key={partner._id} 
+                                        onClick={() => togglePartner(partner)}
+                                        className={`p-4 rounded-2xl border cursor-pointer transition-all relative overflow-hidden ${
+                                          isSelected 
+                                            ? 'bg-[#00FF9D]/10 border-[#00FF9D]' 
+                                            : 'bg-black/20 border-white/10 hover:border-[#00FF9D]/50'
+                                        }`}
+                                      >
+                                        <div className="absolute top-0 right-0 bg-[#00FF9D] text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                                          20% OFF
+                                        </div>
+                                        <h4 className="font-bold text-white text-lg pr-12">{partner.businessName}</h4>
+                                        <p className="text-sm text-gray-400">{partner.city}, {partner.state}</p>
+                                        <div className="mt-4 flex justify-between items-center">
+                                          <span className="text-xs text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-1 rounded-md">Verified Partner</span>
+                                          {isSelected && <Check className="w-5 h-5 text-[#00FF9D]" />}
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )
+                          })}
+                          
+                          {Object.values(partnersData).every(arr => arr.length === 0) && (
+                            <div className="text-center py-8 text-gray-400">
+                              No registered partners found in your selected area yet.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </AnimatePresence>
 
             {/* Navigation Buttons */}
@@ -527,7 +654,7 @@ function TripWizardPage() {
                 </button>
               ) : <div></div>}
 
-              {step < 4 ? (
+              {step < 5 ? (
                 <button 
                   onClick={() => setStep(step + 1)}
                   className="bg-white text-black px-8 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-gray-200 transition-colors"

@@ -15,6 +15,7 @@ const TripSchema = new mongoose.Schema({
   budget: { type: String },
   totalBudget: { type: Number },
   extraActivities: { type: Boolean },
+  selectedPartners: [{ type: mongoose.Schema.Types.Mixed }],
   itinerary: { type: mongoose.Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now }
 });

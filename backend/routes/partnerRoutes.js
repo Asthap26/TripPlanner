@@ -131,15 +131,22 @@ router.put('/hotel/room/:id', async (req, res) => {
   }
 });
 
-router.get('/destination/:city', async (req, res) => {
+router.get('/search', async (req, res) => {
   try {
-    const city = req.params.city;
-    // We can also extract state from query string if needed, e.g. req.query.state
-    const { state } = req.query;
+    const { city, state } = req.query;
 
-    const query = { city: { $regex: new RegExp(`^${city}$`, 'i') } };
+    let query = {};
+    if (city) {
+      query.city = { $regex: new RegExp(`^${city}$`, 'i') };
+    }
     if (state) {
       query.state = { $regex: new RegExp(`^${state}$`, 'i') };
+    }
+
+    // If both are missing, it might return everything, which could be bad.
+    // Ensure at least state is provided
+    if (!state && !city) {
+      return res.status(400).json({ error: 'Please provide at least a state or city.' });
     }
 
     const [activities, restaurants, hotels, agencies] = await Promise.all([
