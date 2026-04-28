@@ -14,6 +14,10 @@ router.get('/restaurants', async (req, res) => {
   }
 });
 
+
+
+
+
 router.get('/agencies', async (req, res) => {
   try {
     const agencies = await TravelAgency.find().sort({ createdAt: -1 });
