@@ -5,9 +5,6 @@ import Hotel from '../models/Hotel.js';
 
 const router = express.Router();
 
-
-
-
 router.get('/restaurants', async (req, res) => {
   try {
     const restaurants = await Restaurant.find().sort({ createdAt: -1 });
