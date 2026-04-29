@@ -223,7 +223,9 @@ function ItineraryPage() {
                     {partner.discountApplied || 20}% DISCOUNT APPLIED
                   </div>
                   <h3 className="font-bold text-white text-lg pr-8">{partner.businessName}</h3>
-                  <p className="text-sm text-gray-400">{partner.city}</p>
+                  <p className="text-sm text-gray-400">
+                    {partner.pricePerKm ? `Price: ₹${partner.pricePerKm}/km` : partner.city}
+                  </p>
                 </div>
               ))}
             </div>

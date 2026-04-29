@@ -426,7 +426,7 @@ function TripWizardPage() {
                                         10% OFF
                                       </div>
                                       <h4 className="font-bold text-white text-lg pr-12">{agency.businessName}</h4>
-                                      <p className="text-sm text-gray-400">{agency.city}, {agency.state}</p>
+                                      <p className="text-sm text-gray-400">Price: ₹{agency.pricePerKm || 'N/A'}/km</p>
                                       <div className="mt-2 flex justify-between items-center">
                                         <span className="text-xs text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-1 rounded-md">Verified Agency</span>
                                         {isSelected && <Check className="w-5 h-5 text-[#00FF9D]" />}
@@ -436,7 +436,7 @@ function TripWizardPage() {
                                 })}
                               </div>
                             ) : (
-                              <p className="text-sm text-gray-500 italic py-4">No agencies found for the selected location.</p>
+                              <p className="text-sm text-gray-500 italic py-4">No travel agencies found.</p>
                             )}
                           </div>
                         )}
