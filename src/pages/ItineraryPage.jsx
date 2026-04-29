@@ -42,7 +42,7 @@ function ItineraryPage() {
       const city = parts[0].trim();
       const state = parts.length > 1 ? parts[1].trim() : '';
       
-      fetch(`http://localhost:5555/api/partners/destination/${city}?state=${state}`)
+      fetch(`http://localhost:5555/api/partners/search?city=${city}&state=${state}`)
         .then(res => res.json())
         .then(data => {
           if (data && !data.error) {
@@ -220,7 +220,7 @@ function ItineraryPage() {
               {tripData.selectedPartners.map((partner, idx) => (
                 <div key={idx} className="bg-black/40 border border-white/10 p-4 rounded-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 bg-[#00FF9D] text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">
-                    20% DISCOUNT APPLIED
+                    {partner.discountApplied || 20}% DISCOUNT APPLIED
                   </div>
                   <h3 className="font-bold text-white text-lg pr-8">{partner.businessName}</h3>
                   <p className="text-sm text-gray-400">{partner.city}</p>

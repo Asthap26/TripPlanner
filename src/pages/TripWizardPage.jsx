@@ -30,9 +30,14 @@ function TripWizardPage() {
   const [preferences, setPreferences] = useState([]);
   const [hotelType, setHotelType] = useState('3-star');
   const [askPartners, setAskPartners] = useState(null); // null = haven't asked, true = yes, false = no
-  const [partnersData, setPartnersData] = useState({ activities: [], restaurants: [], hotels: [], agencies: [] });
+  const [partnersData, setPartnersData] = useState({ activities: [], restaurants: [], hotels: [] });
   const [selectedPartners, setSelectedPartners] = useState([]);
   const [isLoadingPartners, setIsLoadingPartners] = useState(false);
+
+  // State for Travel Agencies
+  const [needsTravelAgency, setNeedsTravelAgency] = useState(null);
+  const [agenciesData, setAgenciesData] = useState([]);
+  const [isLoadingAgencies, setIsLoadingAgencies] = useState(false);
 
   // Handlers
   const toggleDestination = (dest) => {
@@ -53,30 +58,43 @@ function TripWizardPage() {
     );
   };
 
-  const togglePartner = (partner) => {
+  const togglePartner = (partner, discountApplied = 20) => {
     setSelectedPartners(prev => {
       const exists = prev.find(p => p._id === partner._id);
       if (exists) return prev.filter(p => p._id !== partner._id);
-      return [...prev, partner];
+      return [...prev, { ...partner, discountApplied }];
     });
   };
 
-  const fetchPartners = async () => {
-    setIsLoadingPartners(true);
+  const fetchPartners = async (type = 'all') => {
+    if (type === 'all') setIsLoadingPartners(true);
+    if (type === 'agency') setIsLoadingAgencies(true);
+    
     try {
       const queryParams = new URLSearchParams();
       if (selectedState) queryParams.append('state', selectedState);
-      if (cityMode === 'single' && selectedCity) queryParams.append('city', selectedCity);
+      
+      if (cityMode === 'single' && selectedCity) {
+        queryParams.append('city', selectedCity);
+      } else if (cityMode === 'multi-manual' && selectedMultiCities.length > 0) {
+        queryParams.append('city', selectedMultiCities.join(','));
+      }
       
       const res = await fetch(`http://localhost:5555/api/partners/search?${queryParams.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setPartnersData(data);
+        if (type === 'all') {
+          setPartnersData({ activities: data.activities, restaurants: data.restaurants, hotels: data.hotels });
+        } else if (type === 'agency') {
+          setAgenciesData(data.agencies);
+        }
       }
     } catch (err) {
       console.error("Error fetching partners:", err);
     }
-    setIsLoadingPartners(false);
+    
+    if (type === 'all') setIsLoadingPartners(false);
+    if (type === 'agency') setIsLoadingAgencies(false);
   };
 
   const calculateBudgetTier = (val) => {
@@ -362,6 +380,70 @@ function TripWizardPage() {
                     </div>
                   )}
 
+                  {((selectedState && cityMode === 'single' && selectedCity) || (selectedState && cityMode === 'multi-manual' && selectedMultiCities.length > 0) || (selectedState && cityMode === 'multi-ai')) && (
+                    <div className="pt-6 border-t border-white/10 mt-6">
+                      <div className="flex flex-col gap-4">
+                        <div>
+                          <h3 className="text-xl font-bold mb-2 text-[#00FF9D]">Need a Travel Agency?</h3>
+                          <p className="text-sm text-gray-400 mb-4">Book with our verified partners and get a 10% discount on transportation!</p>
+                          <div className="flex gap-4">
+                            <button 
+                              onClick={() => { setNeedsTravelAgency(true); fetchPartners('agency'); }}
+                              className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${needsTravelAgency === true ? 'bg-[#00FF9D] text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                            >
+                              Yes, Show Options
+                            </button>
+                            <button 
+                              onClick={() => setNeedsTravelAgency(false)}
+                              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${needsTravelAgency === false ? 'bg-white text-black' : 'border border-white/20 text-white hover:bg-white/5'}`}
+                            >
+                              No, Thanks
+                            </button>
+                          </div>
+                        </div>
+
+                        {needsTravelAgency && (
+                          <div className="mt-4">
+                            {isLoadingAgencies ? (
+                              <div className="flex justify-center py-6">
+                                <Loader2 className="w-6 h-6 text-[#00FF9D] animate-spin" />
+                              </div>
+                            ) : agenciesData.length > 0 ? (
+                              <div className="space-y-4 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                {agenciesData.map(agency => {
+                                  const isSelected = selectedPartners.find(p => p._id === agency._id);
+                                  return (
+                                    <div 
+                                      key={agency._id} 
+                                      onClick={() => togglePartner(agency, 10)}
+                                      className={`p-4 rounded-2xl border cursor-pointer transition-all relative overflow-hidden ${
+                                        isSelected 
+                                          ? 'bg-[#00FF9D]/10 border-[#00FF9D]' 
+                                          : 'bg-black/20 border-white/10 hover:border-[#00FF9D]/50'
+                                      }`}
+                                    >
+                                      <div className="absolute top-0 right-0 bg-[#00FF9D] text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                                        10% OFF
+                                      </div>
+                                      <h4 className="font-bold text-white text-lg pr-12">{agency.businessName}</h4>
+                                      <p className="text-sm text-gray-400">{agency.city}, {agency.state}</p>
+                                      <div className="mt-2 flex justify-between items-center">
+                                        <span className="text-xs text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-1 rounded-md">Verified Agency</span>
+                                        {isSelected && <Check className="w-5 h-5 text-[#00FF9D]" />}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500 italic py-4">No agencies found for the selected location.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                 </motion.div>
               )}
 
@@ -560,7 +642,7 @@ function TripWizardPage() {
                   {askPartners === null && (
                     <div className="text-center py-8">
                       <p className="text-lg text-gray-300 mb-8">
-                        Do you want to add registered hotels, restaurants, travel agencies, or other activities from our verified system? 
+                        Do you want to add registered hotels, restaurants, or other activities from our verified system? 
                         <br/><span className="text-[#00FF9D] font-bold">Enjoy a 20% discount on all platform bookings!</span>
                       </p>
                       <div className="flex gap-4 justify-center">
@@ -595,7 +677,7 @@ function TripWizardPage() {
                         </div>
                       ) : (
                         <div className="space-y-8 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                          {['hotels', 'restaurants', 'activities', 'agencies'].map((category) => {
+                          {['hotels', 'restaurants', 'activities'].map((category) => {
                             if (!partnersData[category] || partnersData[category].length === 0) return null;
                             return (
                               <div key={category}>

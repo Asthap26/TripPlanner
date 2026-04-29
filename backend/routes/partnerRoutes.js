@@ -137,7 +137,8 @@ router.get('/search', async (req, res) => {
 
     let query = {};
     if (city) {
-      query.city = { $regex: new RegExp(`^${city}$`, 'i') };
+      const cities = city.split(',').map(c => c.trim());
+      query.city = { $in: cities.map(c => new RegExp(`^${c}$`, 'i')) };
     }
     if (state) {
       query.state = { $regex: new RegExp(`^${state}$`, 'i') };
