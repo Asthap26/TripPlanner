@@ -80,7 +80,7 @@ function TripWizardPage() {
         queryParams.append('city', selectedMultiCities.join(','));
       }
       
-      const res = await fetch(`http://localhost:5555/api/partners/search?${queryParams.toString()}`);
+      const res = await fetch(`http://localhost:5555/api/partner/search?${queryParams.toString()}`);
       if (res.ok) {
         const data = await res.json();
         if (type === 'all') {

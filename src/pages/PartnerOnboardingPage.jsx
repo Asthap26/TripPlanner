@@ -23,7 +23,9 @@ function PartnerOnboardingPage() {
     pricePerPerson: '',
     time: '',
     duration: '',
-    details: ''
+    details: '',
+    driverCount: '',
+    pricePerKm: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -306,27 +308,43 @@ function PartnerOnboardingPage() {
                     <label className="block text-xs text-gray-400 mb-1">Phone *</label>
                     <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">State *</label>
-                    <select name="state" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
-                      <option value="" disabled>Choose State</option>
-                      {Object.keys(indianStatesAndCities).map(state => (
-                        <option key={state} value={state} className="bg-gray-900 text-white">{state}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {formData.businessType !== 'Travel Agency' && (
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">State *</label>
+                      <select name="state" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
+                        <option value="" disabled>Choose State</option>
+                        {Object.keys(indianStatesAndCities).map(state => (
+                          <option key={state} value={state} className="bg-gray-900 text-white">{state}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">City *</label>
-                    <select name="city" value={formData.city} onChange={handleChange} required disabled={!formData.state} className={`w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none ${!formData.state ? 'opacity-50' : ''}`}>
-                      <option value="" disabled>Choose City</option>
-                      {formData.state && indianStatesAndCities[formData.state].map(city => (
-                        <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
-                      ))}
-                    </select>
+                {formData.businessType !== 'Travel Agency' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">City *</label>
+                      <select name="city" value={formData.city} onChange={handleChange} required disabled={!formData.state} className={`w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none ${!formData.state ? 'opacity-50' : ''}`}>
+                        <option value="" disabled>Choose City</option>
+                        {formData.state && indianStatesAndCities[formData.state].map(city => (
+                          <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
+                {formData.businessType === 'Travel Agency' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Number of Drivers *</label>
+                      <input type="number" name="driverCount" value={formData.driverCount} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Price per Km (₹) *</label>
+                      <input type="number" name="pricePerKm" value={formData.pricePerKm} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    </div>
+                  </div>
+                )}
                 {formData.businessType === 'Travel and Other Activity' && (
                   <>
                     <div className="grid grid-cols-2 gap-4">

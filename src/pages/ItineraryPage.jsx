@@ -42,7 +42,7 @@ function ItineraryPage() {
       const city = parts[0].trim();
       const state = parts.length > 1 ? parts[1].trim() : '';
       
-      fetch(`http://localhost:5555/api/partners/search?city=${city}&state=${state}`)
+      fetch(`http://localhost:5555/api/partner/search?city=${city}&state=${state}`)
         .then(res => res.json())
         .then(data => {
           if (data && !data.error) {

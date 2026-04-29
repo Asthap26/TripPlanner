@@ -6,7 +6,7 @@ const TravelAgencySchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   gstNumber: { type: String },
-  city: { type: String, required: true },
+  city: { type: String },
   agencyName: { type: String },
   driverCount: { type: Number },
   busCount: { type: Number },

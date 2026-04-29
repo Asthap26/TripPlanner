@@ -15,8 +15,12 @@ router.post('/register-partner', async (req, res) => {
   try {
     const { businessName, businessType, ownerName, city, state, email, phone, gstNumber, password } = req.body;
 
-    if (!businessName || !businessType || !ownerName || !city || !state || !email || !phone || !password) {
-      return res.status(400).json({ error: 'All fields except GST Number are required' });
+    if (!businessName || !businessType || !ownerName || !email || !phone || !password) {
+      return res.status(400).json({ error: 'Core fields are required' });
+    }
+
+    if (businessType !== 'Travel Agency' && (!city || !state)) {
+      return res.status(400).json({ error: 'City and State are required for this business type' });
     }
 
     let newPartner;
@@ -33,7 +37,11 @@ router.post('/register-partner', async (req, res) => {
     if (businessType === 'Restaurant') {
       newPartner = new Restaurant(partnerData);
     } else if (businessType === 'Travel Agency') {
-      newPartner = new TravelAgency(partnerData);
+      newPartner = new TravelAgency({
+        ...partnerData,
+        driverCount: req.body.driverCount,
+        pricePerKm: req.body.pricePerKm
+      });
     } else if (businessType === 'Hotel / Resort') {
       newPartner = new Hotel(partnerData);
     } else if (businessType === 'Travel and Other Activity') {

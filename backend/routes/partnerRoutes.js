@@ -141,7 +141,11 @@ router.get('/search', async (req, res) => {
       query.city = { $in: cities.map(c => new RegExp(`^${c}$`, 'i')) };
     }
     if (state) {
-      query.state = { $regex: new RegExp(`^${state}$`, 'i') };
+      query.$or = [
+        { state: { $regex: new RegExp(`^${state}$`, 'i') } },
+        { state: { $exists: false } },
+        { state: null }
+      ];
     }
 
     // If both are missing, it might return everything, which could be bad.
@@ -154,7 +158,7 @@ router.get('/search', async (req, res) => {
       ActivityOwner.find(query),
       Restaurant.find(query),
       Hotel.find(query),
-      TravelAgency.find(query)
+      TravelAgency.find({})
     ]);
 
     res.json({
