@@ -8,6 +8,7 @@ import ItineraryPage from './pages/ItineraryPage';
 import DashboardPage from './pages/DashboardPage';
 import DestinationPage from './pages/DestinationPage';
 import RestaurantsPage from './pages/RestaurantsPage';
+import HotelsPage from './pages/HotelsPage';
 import TransportPage from './pages/TransportPage';
 import ReviewPage from './pages/ReviewPage';
 import PartnerOnboardingPage from './pages/PartnerOnboardingPage';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/destination/:id" element={<DestinationPage />} />
           <Route path="/restaurants" element={<RestaurantsPage />} />
+          <Route path="/hotels" element={<HotelsPage />} />
           <Route path="/transport" element={<TransportPage />} />
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/partner-onboarding" element={<PartnerOnboardingPage />} />

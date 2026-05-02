@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Intro from '../components/Intro';
 import { 
   Check, ArrowRight, Map, Star, User, Building2, MapPin, Navigation, 
-  Calendar, Shield, Zap, Sparkles, Briefcase
+  Calendar, Shield, Zap, Sparkles, Briefcase, Utensils, Car
 } from 'lucide-react';
 
 function LandingPage() {
@@ -50,10 +50,9 @@ function LandingPage() {
                 </Link>
                 <nav className="hidden lg:flex items-center gap-8 font-medium text-sm">
                   <Link to="/plan" onClick={handlePlanClick} className="hover:text-white transition-colors">Plan Trip</Link>
-                  <Link to="/destination/shimla" className="hover:text-white transition-colors">Destinations</Link>
+                  <Link to="/hotels" className="hover:text-white transition-colors">Hotels</Link>
                   <Link to="/restaurants" className="hover:text-white transition-colors">Restaurants</Link>
                   <Link to="/transport" className="hover:text-white transition-colors">Transport</Link>
-                  <Link to="/partner-onboarding" className="hover:text-white transition-colors">Partners</Link>
                   <Link to="/about" className="hover:text-white transition-colors">About</Link>
                 </nav>
                 <div className="flex items-center gap-4">
@@ -207,9 +206,9 @@ function LandingPage() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
                   {[
-                    { icon: User, title: "For Travelers", desc: "Free AI planning, verified reviews, and seamless booking.", link: "/plan", btn: "Start Planning" },
-                    { icon: Building2, title: "For Restaurants", desc: "Get discovered, accept pre-bookings, and increase revenue.", link: "/partner-onboarding", btn: "List Restaurant" },
-                    { icon: Briefcase, title: "For Travel Agencies", desc: "Offer custom packages and reach high-intent customers.", link: "/partner-onboarding", btn: "Join Network" }
+                    { icon: Building2, title: "Verified Hotels", desc: "Handpicked stays with AI-verified standards and exclusive pricing.", link: "/hotels", btn: "View Hotels" },
+                    { icon: Utensils, title: "Top Restaurants", desc: "Discover local eateries and enjoy guaranteed 20% discounts.", link: "/restaurants", btn: "See Menu" },
+                    { icon: Car, title: "Reliable Transport", desc: "Professional drivers and modern fleet for your entire trip.", link: "/transport", btn: "Book Cab" }
                   ].map((eco, i) => (
                     <div key={i} className="bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 rounded-3xl p-8 flex flex-col items-center text-center">
                       <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-6">
@@ -247,37 +246,7 @@ function LandingPage() {
                 </div>
               </section>
 
-              {/* 8. Destinations Grid */}
-              <section>
-                <div className="flex justify-between items-end mb-10">
-                  <div>
-                    <h2 className="text-4xl font-bold text-white tracking-tight">Popular Destinations</h2>
-                    <p className="mt-2 text-lg">Where our AI shines the brightest.</p>
-                  </div>
-                  <Link to="/destination/shimla" className="hidden md:flex items-center gap-2 text-[#00FF9D] font-bold hover:underline">
-                    View All <ArrowRight className="w-5 h-5" />
-                  </Link>
-                </div>
-                
-                <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-                  {[
-                    { name: "Shimla", img: "https://images.unsplash.com/photo-1605649487212-4d4ce7708323?q=80&w=600&auto=format&fit=crop", h: "h-64" },
-                    { name: "Goa", img: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=600&auto=format&fit=crop", h: "h-96" },
-                    { name: "Kerala", img: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=600&auto=format&fit=crop", h: "h-80" },
-                    { name: "Ladakh", img: "https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=80&w=600&auto=format&fit=crop", h: "h-96" },
-                    { name: "Rajasthan", img: "https://images.unsplash.com/photo-1599661559882-9c4c7c89f5bc?q=80&w=600&auto=format&fit=crop", h: "h-64" },
-                    { name: "Manali", img: "https://images.unsplash.com/photo-1605649487212-4d4ce7708323?q=80&w=600&auto=format&fit=crop", h: "h-80" }
-                  ].map((dest, i) => (
-                    <Link key={i} to={`/destination/${dest.name.toLowerCase()}`} className={`block w-full ${dest.h} rounded-3xl overflow-hidden relative group break-inside-avoid`}>
-                      <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url(${dest.img})` }}></div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                      <div className="absolute bottom-6 left-6 right-6">
-                        <h3 className="text-2xl font-bold text-white">{dest.name}</h3>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
+
 
               {/* 9. Final CTA */}
               <section className="bg-white/[0.02] border border-white/10 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
@@ -305,13 +274,12 @@ function LandingPage() {
                   <div className="flex flex-col gap-3 text-sm">
                     <span className="text-white font-bold mb-2">Explore</span>
                     <Link to="/plan" className="hover:text-[#00FF9D] transition-colors">AI Planner</Link>
-                    <Link to="/destination/shimla" className="hover:text-[#00FF9D] transition-colors">Destinations</Link>
                     <Link to="/dashboard" className="hover:text-[#00FF9D] transition-colors">My Trips</Link>
                   </div>
                   <div className="flex flex-col gap-3 text-sm">
                     <span className="text-white font-bold mb-2">Company</span>
                     <Link to="/about" className="hover:text-[#00FF9D] transition-colors">About Us</Link>
-                    <Link to="/partner-onboarding" className="hover:text-[#00FF9D] transition-colors">Partner Network</Link>
+                    <Link to="/partner-onboarding" className="hover:text-[#00FF9D] transition-colors">List Your Business</Link>
                     <a href="#" className="hover:text-[#00FF9D] transition-colors">Privacy Policy</a>
                   </div>
                 </div>
