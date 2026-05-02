@@ -72,6 +72,7 @@ function TripWizardPage() {
     
     try {
       const queryParams = new URLSearchParams();
+      // If no city/state selected, we don't append any filters to get 'each and every' partner
       if (selectedState) queryParams.append('state', selectedState);
       
       if (cityMode === 'single' && selectedCity) {
@@ -82,7 +83,7 @@ function TripWizardPage() {
         queryParams.append('city', selectedDestinations.join(','));
       }
       
-      const res = await fetch(`http://localhost:5555/api/partner/search?${queryParams.toString()}`);
+      const res = await fetch(`http://localhost:5555/api/partner/search`);
       if (res.ok) {
         const data = await res.json();
         if (type === 'all') {

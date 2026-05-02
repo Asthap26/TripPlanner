@@ -53,6 +53,7 @@ function LandingPage() {
                   <Link to="/hotels" className="hover:text-white transition-colors">Hotels</Link>
                   <Link to="/restaurants" className="hover:text-white transition-colors">Restaurants</Link>
                   <Link to="/transport" className="hover:text-white transition-colors">Transport</Link>
+                  <Link to="/activities" className="hover:text-white transition-colors">Activities</Link>
                   <Link to="/about" className="hover:text-white transition-colors">About</Link>
                 </nav>
                 <div className="flex items-center gap-4">

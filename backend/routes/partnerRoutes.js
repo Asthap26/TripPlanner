@@ -182,17 +182,16 @@ router.get('/search', async (req, res) => {
       ];
     }
 
-    // If both are missing, it might return everything, which could be bad.
-    // Ensure at least state is provided
+    // If both are missing, we return everything (frictionless discovery)
     if (!state && !city) {
-      return res.status(400).json({ error: 'Please provide at least a state or city.' });
+      query = {};
     }
 
     const [activities, restaurants, hotels, agencies] = await Promise.all([
       ActivityOwner.find(query),
       Restaurant.find(query),
       Hotel.find(query),
-      TravelAgency.find({})
+      TravelAgency.find(query)
     ]);
 
     res.json({

@@ -12,6 +12,7 @@ import HotelsPage from './pages/HotelsPage';
 import TransportPage from './pages/TransportPage';
 import ReviewPage from './pages/ReviewPage';
 import PartnerOnboardingPage from './pages/PartnerOnboardingPage';
+import ActivitiesPage from './pages/ActivitiesPage';
 import UserProfilePage from './pages/UserProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
@@ -44,6 +45,7 @@ function App() {
               <PartnerDashboardPage />
             </ProtectedRoute>
           } />
+          <Route path="/activities" element={<ActivitiesPage />} />
           <Route path="/about" element={<AboutPage />} />
         </Routes>
       </div>
