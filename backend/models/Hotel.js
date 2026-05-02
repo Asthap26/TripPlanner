@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 
 const HotelSchema = new mongoose.Schema({
-  businessName: { type: String, required: true },
-  ownerName: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
+  businessName: { type: String },
+  ownerName: { type: String },
+  email: { type: String },
+  phone: { type: String },
   gstNumber: { type: String },
-  city: { type: String, required: true },
+  city: { type: String },
   state: { type: String },
   photo: { type: String },
   pricePerHour: { type: Number },

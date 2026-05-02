@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
 const ActivityOwnerSchema = new mongoose.Schema({
-  businessName: { type: String, required: true },
-  ownerName: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
+  businessName: { type: String },
+  ownerName: { type: String },
+  email: { type: String },
+  phone: { type: String },
   gstNumber: { type: String },
   state: { type: String },
-  city: { type: String, required: true },
+  city: { type: String },
   pricePerPerson: { type: Number },
   time: { type: String },
   duration: { type: String },

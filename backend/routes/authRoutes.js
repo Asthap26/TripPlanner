@@ -31,9 +31,7 @@ router.post('/register-partner', upload.single('photo'), async (req, res) => {
     const { businessName, businessType, ownerName, city, state, email, phone, gstNumber, password } = req.body;
     const photo = req.file ? `http://localhost:5555/uploads/${req.file.filename}` : '';
 
-    if (businessType !== 'Travel Agency' && (!city || !state)) {
-      return res.status(400).json({ error: 'City and State are required for this business type' });
-    }
+
 
     let newPartner;
     const partnerData = {

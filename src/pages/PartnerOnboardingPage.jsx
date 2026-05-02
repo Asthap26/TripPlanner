@@ -198,7 +198,6 @@ function PartnerOnboardingPage() {
               <h2 className="text-3xl font-bold mb-4">Join the network today.</h2>
               <p className="text-gray-400">Registration takes less than 5 minutes. Start reaching thousands of travelers every day.</p>
             </div>
-          </div>
 
           <div className="lg:w-1/2 w-full">
             <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
