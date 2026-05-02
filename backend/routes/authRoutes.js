@@ -6,18 +6,30 @@ import Restaurant from '../models/Restaurant.js';
 import TravelAgency from '../models/TravelAgency.js';
 import Hotel from '../models/Hotel.js';
 import ActivityOwner from '../models/ActivityOwner.js';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'yatrasathi_super_secret_key_123';
 
+// Configure Multer for local storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
 // Register Partner
-router.post('/register-partner', async (req, res) => {
+router.post('/register-partner', upload.single('photo'), async (req, res) => {
   try {
     const { businessName, businessType, ownerName, city, state, email, phone, gstNumber, password } = req.body;
-
-    if (!businessName || !businessType || !ownerName || !email || !phone || !password) {
-      return res.status(400).json({ error: 'Core fields are required' });
-    }
+    const photo = req.file ? `http://localhost:5555/uploads/${req.file.filename}` : '';
 
     if (businessType !== 'Travel Agency' && (!city || !state)) {
       return res.status(400).json({ error: 'City and State are required for this business type' });
@@ -31,7 +43,9 @@ router.post('/register-partner', async (req, res) => {
       phone,
       gstNumber,
       city,
-      state
+      state,
+      photo,
+      password: await bcrypt.hash(password, 10)
     };
 
     if (businessType === 'Restaurant') {

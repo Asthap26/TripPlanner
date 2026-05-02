@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  MapPin, Calendar, Star, Navigation, Map, ThumbsUp, Award, Share2, Edit2, Mountain
+  MapPin, Calendar, Star, Navigation, Map, ThumbsUp, Award, Share2, Edit2, Mountain, ArrowLeft
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,9 +34,14 @@ function UserProfilePage() {
       {/* Header Placeholder */}
       <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold tracking-tighter shrink-0">
-            YATRA<span className="text-[#00FF9D]">sathi</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white" title="Back">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <Link to="/" className="text-2xl font-bold tracking-tighter shrink-0">
+              YATRA<span className="text-[#00FF9D]">sathi</span>
+            </Link>
+          </div>
           <div className="text-sm font-medium text-gray-300">
             Profile
           </div>
@@ -83,10 +88,7 @@ function UserProfilePage() {
 
           {/* STATS ROW */}
           <div className="flex gap-6 sm:gap-12 pb-8 border-b border-white/10 overflow-x-auto scrollbar-hide">
-            <div><span className="font-bold text-xl">{trips.length}</span> <span className="text-gray-400 text-sm">Trips</span></div>
-            <div><span className="font-bold text-xl">0</span> <span className="text-gray-400 text-sm">Reviews</span></div>
-            <div><span className="font-bold text-xl">89</span> <span className="text-gray-400 text-sm">Tips</span></div>
-            <div><span className="font-bold text-xl">340</span> <span className="text-gray-400 text-sm">Followers</span></div>
+            <div><span className="font-bold text-xl">{trips.length}</span> <span className="text-gray-400 text-sm">Trips Planned</span></div>
           </div>
         </div>
       </div>
@@ -95,7 +97,7 @@ function UserProfilePage() {
         
         {/* TABS */}
         <div className="flex gap-8 border-b border-white/10 mb-8 overflow-x-auto scrollbar-hide">
-          {['Trips', 'Reviews', 'Tips', 'Badges'].map(tab => (
+          {['Trips', 'Reviews'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -135,58 +137,7 @@ function UserProfilePage() {
           </div>
         )}
 
-        {/* TAB CONTENT - TIPS */}
-        {activeTab === 'Tips' && (
-          <div className="space-y-6 max-w-2xl">
-            {[
-              { dest: "Shimla", text: "Avoid driving to Mall Road on weekends. The traffic is intense and parking is a nightmare. Better to take a cab or walk if your hotel is close by.", upvotes: 45, date: "2 months ago" },
-              { dest: "Goa", text: "Rent a scooter from a verified vendor only. Always take a video of the scooter before driving off to avoid false damage claims later.", upvotes: 112, date: "4 months ago" },
-            ].map((tip, i) => (
-              <div key={i} className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2 text-sm text-[#00FF9D] font-medium">
-                    <MapPin className="w-4 h-4" /> {tip.dest}
-                  </div>
-                  <span className="text-xs text-gray-500">{tip.date}</span>
-                </div>
-                <p className="text-gray-300 leading-relaxed mb-4">"{tip.text}"</p>
-                <div className="flex items-center gap-4 border-t border-white/10 pt-4">
-                  <button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#00FF9D] transition-colors">
-                    <ThumbsUp className="w-4 h-4" /> {tip.upvotes}
-                  </button>
-                  <button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
-                    <Share2 className="w-4 h-4" /> Share
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* TAB CONTENT - BADGES */}
-        {activeTab === 'Badges' && (
-          <div className="space-y-8">
-            <h2 className="text-xl font-bold">Achievements earned</h2>
-            <div className="flex flex-wrap gap-4">
-              {[
-                { name: "First Trip", icon: Navigation, earned: true, color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
-                { name: "10 Destinations", icon: Map, earned: true, color: "text-purple-400", bg: "bg-purple-400/10 border-purple-400/20" },
-                { name: "Top Reviewer", icon: Star, earned: true, color: "text-yellow-400", bg: "bg-yellow-400/10 border-yellow-400/20" },
-                { name: "Budget Master", icon: Award, earned: false, color: "text-gray-600", bg: "bg-white/5 border-white/10 grayscale" },
-                { name: "Adventure Seeker", icon: Mountain, earned: false, color: "text-gray-600", bg: "bg-white/5 border-white/10 grayscale" },
-              ].map((badge, i) => (
-                <div key={i} className={`w-32 h-40 rounded-2xl border flex flex-col items-center justify-center p-4 text-center ${badge.bg}`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 bg-white/5 ${badge.color}`}>
-                    <badge.icon className="w-6 h-6" />
-                  </div>
-                  <h4 className={`text-xs font-bold ${badge.earned ? 'text-white' : 'text-gray-500'}`}>{badge.name}</h4>
-                  {!badge.earned && <div className="mt-2 text-[10px] text-gray-500">Locked</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
+        {/* TAB CONTENT - REVIEWS */}
         {activeTab === 'Reviews' && (
            <div className="flex flex-col items-center justify-center py-20 text-center">
              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">

@@ -3,7 +3,21 @@ import Restaurant from '../models/Restaurant.js';
 import TravelAgency from '../models/TravelAgency.js';
 import Hotel from '../models/Hotel.js';
 
+import User from '../models/User.js';
+import Trip from '../models/Trip.js';
+
 const router = express.Router();
+
+router.get('/stats', async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const tripsPlanned = await Trip.countDocuments();
+    const activeDestinations = (await Trip.distinct('destination')).length;
+    res.json({ totalUsers, tripsPlanned, activeDestinations });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching stats', error: error.message });
+  }
+});
 
 router.get('/restaurants', async (req, res) => {
   try {

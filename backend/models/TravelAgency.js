@@ -12,6 +12,7 @@ const TravelAgencySchema = new mongoose.Schema({
   busCount: { type: Number },
   carCount: { type: Number },
   pricePerKm: { type: Number },
+  photo: { type: String },
   advanceAmount: { type: Number },
   drivers: [{
     name: String,
@@ -19,6 +20,12 @@ const TravelAgencySchema = new mongoose.Schema({
     vehicle: String,
     status: { type: String, default: 'FREE' }
   }],
+  ratings: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rating: { type: Number, required: true, min: 1, max: 5 }
+  }],
+  averageRating: { type: Number, default: 0 },
+  totalRatings: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

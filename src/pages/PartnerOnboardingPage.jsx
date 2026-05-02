@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Building2, Briefcase, TrendingUp, Users, CalendarCheck, CheckCircle2, 
-  ShieldCheck, UploadCloud, ArrowRight, Loader2, MapPin
+  ShieldCheck, UploadCloud, ArrowRight, Loader2, MapPin, ArrowLeft
 } from 'lucide-react';
 import { indianStatesAndCities } from '../utils/locations';
 
@@ -25,7 +25,8 @@ function PartnerOnboardingPage() {
     duration: '',
     details: '',
     driverCount: '',
-    pricePerKm: ''
+    pricePerKm: '',
+    photo: null
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,10 +43,16 @@ function PartnerOnboardingPage() {
     setSuccess('');
 
     try {
+      const dataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null) {
+          dataToSend.append(key, formData[key]);
+        }
+      });
+
       const res = await fetch('http://localhost:5555/api/auth/register-partner', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: dataToSend
       });
       const data = await res.json();
       
@@ -70,7 +77,10 @@ function PartnerOnboardingPage() {
           <Link to="/" className="text-2xl font-bold tracking-tighter">
             YATRA<span className="text-[#00FF9D]">sathi</span> <span className="text-sm font-normal text-gray-400">for Partners</span>
           </Link>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
+            <button onClick={() => navigate(-1)} className="text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
             <button onClick={() => navigate('/auth')} className="text-sm font-medium hover:text-[#00FF9D] transition-colors">Login</button>
           </div>
         </div>
@@ -179,94 +189,14 @@ function PartnerOnboardingPage() {
           )}
         </section>
 
-        {/* PRICING */}
-        <section>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Simple, transparent pricing</h2>
-            <p className="text-gray-400">Choose the plan that fits your business needs.</p>
-          </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Basic */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 flex flex-col">
-              <h3 className="text-xl font-bold mb-2">Basic</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">Free</span>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1 text-sm text-gray-300">
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-gray-500 shrink-0"/> Profile listing in directory</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-gray-500 shrink-0"/> Upload up to 3 photos</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-gray-500 shrink-0"/> Public ratings visible</li>
-              </ul>
-              <button onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })} className="w-full py-3 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-colors">Get Started</button>
-            </div>
-
-            {/* Pro */}
-            <div className="bg-gradient-to-b from-[#00FF9D]/10 to-black border border-[#00FF9D]/50 rounded-3xl p-8 flex flex-col relative transform md:-translate-y-4 shadow-[0_0_30px_rgba(0,255,157,0.1)]">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#00FF9D] text-black px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Most Popular</div>
-              <h3 className="text-xl font-bold mb-2">Pro</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">₹999</span>
-                <span className="text-gray-400">/mo</span>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1 text-sm text-gray-300">
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-[#00FF9D] shrink-0"/> Featured in AI recommendations</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-[#00FF9D] shrink-0"/> Direct booking widget</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-[#00FF9D] shrink-0"/> Advanced analytics dashboard</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-[#00FF9D] shrink-0"/> Unlimited photos</li>
-              </ul>
-              <button onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })} className="w-full py-3 bg-[#00FF9D] text-black rounded-xl font-bold hover:bg-[#00e68d] transition-colors">Start 14-day Free Trial</button>
-            </div>
-
-            {/* Premium */}
-            <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 flex flex-col">
-              <h3 className="text-xl font-bold mb-2">Premium</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold">₹2,499</span>
-                <span className="text-gray-400">/mo</span>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1 text-sm text-gray-300">
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0"/> Priority placement everywhere</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0"/> "Verified Partner" trust badge</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0"/> Custom package creation</li>
-                <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0"/> Dedicated account manager</li>
-              </ul>
-              <button onClick={() => document.getElementById('register').scrollIntoView({ behavior: 'smooth' })} className="w-full py-3 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-colors">Contact Sales</button>
-            </div>
-          </div>
-        </section>
 
         {/* REGISTRATION FORM & TRUST */}
         <section id="register" className="flex flex-col lg:flex-row gap-12 items-center">
           
-          <div className="lg:w-1/2 space-y-8">
             <div>
               <h2 className="text-3xl font-bold mb-4">Join the network today.</h2>
-              <p className="text-gray-400">Registration takes less than 5 minutes. Our team manually verifies every business to ensure quality for our travelers.</p>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm shrink-0">1</div>
-                <div>
-                  <h4 className="font-bold text-lg">Submit your details</h4>
-                  <p className="text-sm text-gray-400">Fill out the form with your business information and GST details.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm shrink-0">2</div>
-                <div>
-                  <h4 className="font-bold text-lg">Verification</h4>
-                  <p className="text-sm text-gray-400 flex items-center gap-2">Verified by YATRAsathi team within 48 hours <ShieldCheck className="w-4 h-4 text-[#00FF9D]" /></p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-[#00FF9D]/20 text-[#00FF9D] flex items-center justify-center font-bold text-sm shrink-0">3</div>
-                <div>
-                  <h4 className="font-bold text-lg">Go Live</h4>
-                  <p className="text-sm text-gray-400">Start receiving bookings and reaching thousands of travelers.</p>
-                </div>
-              </div>
+              <p className="text-gray-400">Registration takes less than 5 minutes. Start reaching thousands of travelers every day.</p>
             </div>
           </div>
 
@@ -280,12 +210,12 @@ function PartnerOnboardingPage() {
               <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Business Name *</label>
-                    <input type="text" name="businessName" value={formData.businessName} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Business Name</label>
+                    <input type="text" name="businessName" value={formData.businessName} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Business Type *</label>
-                    <select name="businessType" value={formData.businessType} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
+                    <label className="block text-xs text-gray-400 mb-1">Business Type</label>
+                    <select name="businessType" value={formData.businessType} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
                       <option>Restaurant</option>
                       <option>Travel Agency</option>
                       <option>Hotel / Resort</option>
@@ -295,23 +225,23 @@ function PartnerOnboardingPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Owner Name *</label>
-                    <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Owner Name</label>
+                    <input type="text" name="ownerName" value={formData.ownerName} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Email *</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Email</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Phone *</label>
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                    <label className="block text-xs text-gray-400 mb-1">Phone</label>
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                   </div>
                   {formData.businessType !== 'Travel Agency' && (
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">State *</label>
-                      <select name="state" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
+                      <label className="block text-xs text-gray-400 mb-1">State</label>
+                      <select name="state" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none">
                         <option value="" disabled>Choose State</option>
                         {Object.keys(indianStatesAndCities).map(state => (
                           <option key={state} value={state} className="bg-gray-900 text-white">{state}</option>
@@ -323,8 +253,8 @@ function PartnerOnboardingPage() {
                 {formData.businessType !== 'Travel Agency' && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">City *</label>
-                      <select name="city" value={formData.city} onChange={handleChange} required disabled={!formData.state} className={`w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none ${!formData.state ? 'opacity-50' : ''}`}>
+                      <label className="block text-xs text-gray-400 mb-1">City</label>
+                      <select name="city" value={formData.city} onChange={handleChange} disabled={!formData.state} className={`w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] appearance-none ${!formData.state ? 'opacity-50' : ''}`}>
                         <option value="" disabled>Choose City</option>
                         {formData.state && indianStatesAndCities[formData.state].map(city => (
                           <option key={city} value={city} className="bg-gray-900 text-white">{city}</option>
@@ -336,12 +266,12 @@ function PartnerOnboardingPage() {
                 {formData.businessType === 'Travel Agency' && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Number of Drivers *</label>
-                      <input type="number" name="driverCount" value={formData.driverCount} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                      <label className="block text-xs text-gray-400 mb-1">Number of Drivers</label>
+                      <input type="number" name="driverCount" value={formData.driverCount} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-400 mb-1">Price per Km (₹) *</label>
-                      <input type="number" name="pricePerKm" value={formData.pricePerKm} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                      <label className="block text-xs text-gray-400 mb-1">Price per Km (₹)</label>
+                      <input type="number" name="pricePerKm" value={formData.pricePerKm} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                     </div>
                   </div>
                 )}
@@ -349,18 +279,18 @@ function PartnerOnboardingPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Price Per Person (₹) *</label>
-                        <input type="number" name="pricePerPerson" value={formData.pricePerPerson} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                        <label className="block text-xs text-gray-400 mb-1">Price Per Person (₹)</label>
+                        <input type="number" name="pricePerPerson" value={formData.pricePerPerson} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Timing (e.g., 10:00 AM) *</label>
-                        <input type="text" name="time" value={formData.time} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                        <label className="block text-xs text-gray-400 mb-1">Timing (e.g., 10:00 AM)</label>
+                        <input type="text" name="time" value={formData.time} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Duration (e.g., 2 hours) *</label>
-                        <input type="text" name="duration" value={formData.duration} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
+                        <label className="block text-xs text-gray-400 mb-1">Duration (e.g., 2 hours)</label>
+                        <input type="text" name="duration" value={formData.duration} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                       </div>
                       <div>
                         <label className="block text-xs text-gray-400 mb-1">Activity Details</label>
@@ -374,14 +304,28 @@ function PartnerOnboardingPage() {
                   <input type="text" name="gstNumber" value={formData.gstNumber} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Password *</label>
-                  <input type="password" name="password" value={formData.password} onChange={handleChange} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" placeholder="To manage your dashboard later" />
+                  <label className="block text-xs text-gray-400 mb-1">Password</label>
+                  <input type="password" name="password" value={formData.password} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D]" placeholder="To manage your dashboard later" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Upload Logo</label>
-                  <div className="border border-white/10 border-dashed rounded-xl p-4 flex items-center justify-center gap-2 text-sm text-gray-400 cursor-pointer hover:bg-white/5 transition-colors">
-                    <UploadCloud className="w-5 h-5" /> Browse File
+                  <label className="block text-xs text-gray-400 mb-1">Upload Business Photo (Gallery)</label>
+                  <div className="relative group">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => setFormData({ ...formData, photo: e.target.files[0] })}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00FF9D] pr-12 file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#00FF9D]/10 file:text-[#00FF9D] hover:file:bg-[#00FF9D]/20 cursor-pointer" 
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <UploadCloud className="w-5 h-5 text-gray-500 group-hover:text-[#00FF9D] transition-colors" />
+                    </div>
                   </div>
+                  <p className="mt-1.5 text-[10px] text-gray-500 italic">Select a JPG or PNG image of your business to showcase to travelers.</p>
+                  {formData.photo instanceof File && (
+                    <div className="mt-2 h-20 w-full rounded-lg overflow-hidden border border-white/10 bg-white/5">
+                      <img src={URL.createObjectURL(formData.photo)} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
                 <button disabled={loading} className="w-full bg-[#00FF9D] text-black py-4 rounded-xl font-bold mt-4 hover:bg-[#00e68d] transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                   {loading && <Loader2 className="w-5 h-5 animate-spin" />}

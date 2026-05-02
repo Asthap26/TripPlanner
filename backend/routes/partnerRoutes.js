@@ -30,6 +30,40 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// RATE PARTNER
+router.post('/rate', async (req, res) => {
+  try {
+    const { type, id, rating, userId } = req.body;
+    if (!type || !id || !rating) return res.status(400).json({ error: 'Missing required fields' });
+
+    let partner;
+    if (type === 'meal') partner = await Restaurant.findById(id);
+    else if (type === 'transport') partner = await TravelAgency.findById(id);
+    else if (type === 'hotel') partner = await Hotel.findById(id);
+    else if (type === 'activity') partner = await ActivityOwner.findById(id);
+
+    if (!partner) return res.status(404).json({ error: 'Partner not found' });
+
+    // Check if user already rated (optional, but good practice. We'll just allow multiple for now or update existing)
+    const existingRatingIndex = partner.ratings.findIndex(r => r.userId && r.userId.toString() === userId);
+    if (existingRatingIndex >= 0) {
+      partner.ratings[existingRatingIndex].rating = rating;
+    } else {
+      partner.ratings.push({ userId, rating });
+    }
+
+    // Recalculate average
+    const total = partner.ratings.reduce((sum, r) => sum + r.rating, 0);
+    partner.totalRatings = partner.ratings.length;
+    partner.averageRating = total / partner.totalRatings;
+
+    await partner.save();
+    res.json(partner);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // RESTAURANT ROUTES
 router.post('/restaurant/menu', async (req, res) => {
   try {

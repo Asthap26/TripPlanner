@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Intro from '../components/Intro';
 import { 
   Check, ArrowRight, Map, Star, User, Building2, MapPin, Navigation, 
@@ -9,6 +9,24 @@ import {
 
 function LandingPage() {
   const [hasEntered, setHasEntered] = useState(false);
+  const [stats, setStats] = useState({ totalUsers: 0, tripsPlanned: 0, activeDestinations: 0 });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch('http://localhost:5555/api/public/stats')
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  const handlePlanClick = (e) => {
+    const user = localStorage.getItem('user');
+    if (!user) {
+      e.preventDefault();
+      alert('You have to login or sign in first before creating the trip.');
+      navigate('/auth');
+    }
+  };
 
   return (
     <div className="relative bg-[#0A0A0A] min-h-screen text-[#A1A1AA] font-sans selection:bg-[#00FF9D] selection:text-black overflow-x-hidden">
@@ -31,7 +49,7 @@ function LandingPage() {
                   YATRA<span className="text-[#00FF9D]">sathi</span>
                 </Link>
                 <nav className="hidden lg:flex items-center gap-8 font-medium text-sm">
-                  <Link to="/plan" className="hover:text-white transition-colors">Plan Trip</Link>
+                  <Link to="/plan" onClick={handlePlanClick} className="hover:text-white transition-colors">Plan Trip</Link>
                   <Link to="/destination/shimla" className="hover:text-white transition-colors">Destinations</Link>
                   <Link to="/restaurants" className="hover:text-white transition-colors">Restaurants</Link>
                   <Link to="/transport" className="hover:text-white transition-colors">Transport</Link>
@@ -40,7 +58,7 @@ function LandingPage() {
                 </nav>
                 <div className="flex items-center gap-4">
                   <Link to="/auth" className="text-sm font-medium hover:text-white transition-colors hidden sm:block">Login</Link>
-                  <Link to="/plan" className="bg-[#00FF9D] text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#00e68d] transition-colors shadow-[0_0_15px_rgba(0,255,157,0.3)]">
+                  <Link to="/plan" onClick={handlePlanClick} className="bg-[#00FF9D] text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#00e68d] transition-colors shadow-[0_0_15px_rgba(0,255,157,0.3)]">
                     Start Planning
                   </Link>
                 </div>
@@ -60,7 +78,7 @@ function LandingPage() {
                     YATRAsathi uses advanced AI to craft perfect, personalized Indian itineraries in seconds. Stop stressing, start exploring.
                   </p>
                   <div className="flex flex-wrap items-center gap-4">
-                    <Link to="/plan" className="bg-[#00FF9D] text-black px-8 py-4 rounded-full font-bold hover:bg-[#00e68d] transition-colors flex items-center gap-2">
+                    <Link to="/plan" onClick={handlePlanClick} className="bg-[#00FF9D] text-black px-8 py-4 rounded-full font-bold hover:bg-[#00e68d] transition-colors flex items-center gap-2">
                       Build Itinerary <ArrowRight className="w-5 h-5" />
                     </Link>
                     <Link to="/dashboard" className="bg-white/5 border border-white/10 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/10 transition-colors">
@@ -69,16 +87,16 @@ function LandingPage() {
                   </div>
                   <div className="flex gap-6 pt-4 border-t border-white/10">
                     <div>
-                      <p className="text-white font-bold text-2xl">100k+</p>
+                      <p className="text-white font-bold text-2xl">{stats.tripsPlanned.toLocaleString()}+</p>
                       <p className="text-sm text-gray-500">Trips Planned</p>
                     </div>
                     <div>
-                      <p className="text-white font-bold text-2xl">500+</p>
+                      <p className="text-white font-bold text-2xl">{stats.activeDestinations.toLocaleString()}+</p>
                       <p className="text-sm text-gray-500">Destinations</p>
                     </div>
                     <div>
-                      <p className="text-white font-bold text-2xl">4.9/5</p>
-                      <p className="text-sm text-gray-500">User Rating</p>
+                      <p className="text-white font-bold text-2xl">{stats.totalUsers.toLocaleString()}+</p>
+                      <p className="text-sm text-gray-500">Active Users</p>
                     </div>
                   </div>
                 </div>
@@ -121,7 +139,7 @@ function LandingPage() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#00FF9D]/10 blur-[50px] rounded-full"></div>
                     <h3 className="text-3xl font-bold text-white mb-4">Enter YATRAsathi AI.</h3>
                     <p className="text-lg mb-8 leading-relaxed">We consolidate millions of data points into one seamless platform. Tell us where and when, and get a highly optimized, fully bookable itinerary instantly.</p>
-                    <Link to="/plan" className="inline-flex items-center gap-2 text-[#00FF9D] font-bold text-lg hover:underline">
+                    <Link to="/plan" onClick={handlePlanClick} className="inline-flex items-center gap-2 text-[#00FF9D] font-bold text-lg hover:underline">
                       See the magic <ArrowRight className="w-5 h-5" />
                     </Link>
                   </div>
@@ -267,7 +285,7 @@ function LandingPage() {
                 <h2 className="text-5xl md:text-7xl font-bold text-white tracking-tighter mb-8 relative z-10">
                   Ready for your next adventure?
                 </h2>
-                <Link to="/plan" className="inline-block bg-[#00FF9D] text-black px-12 py-5 rounded-full font-bold text-xl hover:bg-[#00e68d] transition-colors shadow-[0_0_40px_rgba(0,255,157,0.4)] relative z-10 hover:scale-105 transform">
+                <Link to="/plan" onClick={handlePlanClick} className="inline-block bg-[#00FF9D] text-black px-12 py-5 rounded-full font-bold text-xl hover:bg-[#00e68d] transition-colors shadow-[0_0_40px_rgba(0,255,157,0.4)] relative z-10 hover:scale-105 transform">
                   Start Planning Now
                 </Link>
               </section>

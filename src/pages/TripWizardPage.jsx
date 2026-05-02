@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, MapPin, Calendar, Users, Plus, Minus, Check, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, Plus, Minus, Check, ArrowRight, ArrowLeft, Loader2, Star } from 'lucide-react';
 
 import { indianStatesAndCities } from '../utils/locations';
 
@@ -78,6 +78,8 @@ function TripWizardPage() {
         queryParams.append('city', selectedCity);
       } else if (cityMode === 'multi-manual' && selectedMultiCities.length > 0) {
         queryParams.append('city', selectedMultiCities.join(','));
+      } else if (!selectedState && selectedDestinations.length > 0) {
+        queryParams.append('city', selectedDestinations.join(','));
       }
       
       const res = await fetch(`http://localhost:5555/api/partner/search?${queryParams.toString()}`);
@@ -106,6 +108,14 @@ function TripWizardPage() {
 
   const totalTravelers = travelers.adults + travelers.children;
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (!user) {
+      alert('You have to login or sign in first before creating the trip.');
+      navigate('/auth');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     if (tripType === 'Solo') {
@@ -187,9 +197,14 @@ function TripWizardPage() {
     <div className="min-h-screen bg-[#0E1113] text-white flex flex-col items-center py-12 px-4">
       {/* Header */}
       <div className="w-full max-w-3xl mb-8 flex items-center justify-between">
-        <Link to="/" className="text-2xl font-bold tracking-tighter">
-          YATRA<span className="text-[#00FF9D]">sathi</span>
-        </Link>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white" title="Back">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <Link to="/" className="text-2xl font-bold tracking-tighter">
+            YATRA<span className="text-[#00FF9D]">sathi</span>
+          </Link>
+        </div>
         <Link to="/" className="text-sm text-gray-400 hover:text-white transition-colors">
           Exit Planning
         </Link>
@@ -700,6 +715,13 @@ function TripWizardPage() {
                                         </div>
                                         <h4 className="font-bold text-white text-lg pr-12">{partner.businessName}</h4>
                                         <p className="text-sm text-gray-400">{partner.city}, {partner.state}</p>
+                                        <div className="mt-2 flex items-center gap-1.5">
+                                          <div className="flex items-center gap-0.5 text-yellow-500">
+                                            <Star className="w-3 h-3 fill-current" />
+                                            <span className="text-xs font-bold">{partner.averageRating ? partner.averageRating.toFixed(1) : 'New'}</span>
+                                          </div>
+                                          <span className="text-[10px] text-gray-500">({partner.totalRatings || 0} reviews)</span>
+                                        </div>
                                         <div className="mt-4 flex justify-between items-center">
                                           <span className="text-xs text-[#00FF9D] bg-[#00FF9D]/10 px-2 py-1 rounded-md">Verified Partner</span>
                                           {isSelected && <Check className="w-5 h-5 text-[#00FF9D]" />}

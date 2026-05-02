@@ -12,6 +12,13 @@ const ActivityOwnerSchema = new mongoose.Schema({
   time: { type: String },
   duration: { type: String },
   details: { type: String },
+  photo: { type: String },
+  ratings: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rating: { type: Number, required: true, min: 1, max: 5 }
+  }],
+  averageRating: { type: Number, default: 0 },
+  totalRatings: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

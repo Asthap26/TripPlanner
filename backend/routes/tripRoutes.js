@@ -82,7 +82,7 @@ router.post('/generate', async (req, res) => {
       try {
         console.log("Calling Gemini API...");
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(`${systemPrompt}\n\nUser Request: ${travelContext}`);
         const responseText = result.response.text().trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
         
@@ -209,6 +209,16 @@ router.put('/:id/add-activity', async (req, res) => {
   } catch (err) {
     console.error("Add activity error:", err);
     res.status(500).json({ error: 'Failed to add activity' });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const trip = await Trip.findByIdAndDelete(req.params.id);
+    if (!trip) return res.status(404).json({ error: 'Trip not found' });
+    res.json({ message: 'Trip deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete trip' });
   }
 });
 

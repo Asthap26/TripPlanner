@@ -1,23 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, Users, Map, Hotel, Activity, Edit2, Share2, Download, Bookmark, 
-  Sun, Sunset, Moon, MapPin, Clock, Star, Car, Bus, Plus, Check, Coffee
+  Sun, Sunset, Moon, MapPin, Clock, Star, Car, Bus, Plus, Check, Coffee, ArrowLeft
 } from 'lucide-react';
 import InteractiveMap from '../components/InteractiveMap';
 
 function ItineraryPage() {
   const [activeDay, setActiveDay] = useState(1);
   const [saved, setSaved] = useState(false);
-  const [searchParams] = useSearchParams();
-  const tripId = searchParams.get('tripId');
   const [tripData, setTripData] = useState(null);
-  
   const [availablePartners, setAvailablePartners] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [selectedDayToAdd, setSelectedDayToAdd] = useState(1);
+  const [searchParams] = useSearchParams();
   const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [ratingPartner, setRatingPartner] = useState(null);
+  const [userRating, setUserRating] = useState(5);
+  const [isRating, setIsRating] = useState(false);
+  const navigate = useNavigate();
+  const tripId = searchParams.get('tripId');
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      navigate('/auth');
+      return;
+    }
+  }, [navigate]);
+
+  const handleDeleteTrip = async () => {
+    if (!tripId) return;
+    if (!window.confirm('Are you sure you want to delete this trip?')) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`http://localhost:5555/api/trips/${tripId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        navigate('/dashboard');
+      } else {
+        alert('Failed to delete trip');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting trip');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleShare = () => {
+    const subject = `My Trip Plan to ${destName}`;
+    const body = `Hey! Check out my trip plan to ${destName} from ${new Date(tripData?.startDate).toLocaleDateString()} to ${new Date(tripData?.endDate).toLocaleDateString()}.\n\nOverview: ${tripData?.itinerary?.overview}\n\nTotal Budget: ₹${totalCost}\n\nPlanned via YATRAsathi.`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const submitRating = async () => {
+    if (!ratingPartner) return;
+    setIsRating(true);
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const res = await fetch('http://localhost:5555/api/partner/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: ratingPartner._id,
+          type: ratingPartner.type,
+          userId: user.id,
+          rating: userRating
+        })
+      });
+      if (res.ok) {
+        alert('Rating submitted successfully!');
+        setRatingPartner(null);
+        // Refresh available partners to show new rating
+        window.location.reload(); 
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to submit rating');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRating(false);
+    }
+  };
 
   useEffect(() => {
     if (tripId) {
@@ -57,8 +128,11 @@ function ItineraryPage() {
                   title: a.businessName,
                   description: a.details,
                   price: a.pricePerPerson,
-                  time: a.time,
+                  time: "10:00 AM",
                   duration: a.duration,
+                  photo: a.photo,
+                  averageRating: a.averageRating,
+                  totalRatings: a.totalRatings,
                   icon: Activity
                 });
               });
@@ -75,6 +149,9 @@ function ItineraryPage() {
                   price: h.rooms && h.rooms.length > 0 ? h.rooms[0].pricePerNight : 0,
                   time: "Check-in: 02:00 PM",
                   duration: "1 Night",
+                  photo: h.photo,
+                  averageRating: h.averageRating,
+                  totalRatings: h.totalRatings,
                   icon: Hotel
                 });
               });
@@ -91,6 +168,9 @@ function ItineraryPage() {
                   price: r.menu && r.menu.length > 0 ? r.menu[0].price : 0,
                   time: "12:00 PM or 08:00 PM",
                   duration: "1-2 Hours",
+                  photo: r.photo,
+                  averageRating: r.averageRating,
+                  totalRatings: r.totalRatings,
                   icon: Coffee
                 });
               });
@@ -107,6 +187,9 @@ function ItineraryPage() {
                   price: ag.pricePerKm || 0,
                   time: "Flexible",
                   duration: "Variable",
+                  photo: ag.photo,
+                  averageRating: ag.averageRating,
+                  totalRatings: ag.totalRatings,
                   icon: Car
                 });
               });
@@ -154,9 +237,14 @@ function ItineraryPage() {
       {/* Header */}
       <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold tracking-tighter">
-            YATRA<span className="text-[#00FF9D]">sathi</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white" title="Back">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <Link to="/" className="text-2xl font-bold tracking-tighter">
+              YATRA<span className="text-[#00FF9D]">sathi</span>
+            </Link>
+          </div>
           <div className="flex gap-4">
             <Link to="/plan" className="text-sm font-medium text-gray-300 hover:text-white flex items-center gap-2">
               <Edit2 className="w-4 h-4" /> Edit Parameters
@@ -197,8 +285,16 @@ function ItineraryPage() {
                 <div className="flex items-center gap-1.5"><Activity className="w-4 h-4" /> 12 Acts</div>
               </div>
               <div className="flex items-center gap-3">
-                <button className="p-2.5 rounded-xl border border-white/20 hover:bg-white/10 transition-colors tooltip"><Share2 className="w-5 h-5"/></button>
-                <button className="p-2.5 rounded-xl border border-white/20 hover:bg-white/10 transition-colors"><Download className="w-5 h-5"/></button>
+                <button onClick={handleShare} className="p-2.5 rounded-xl border border-white/20 hover:bg-white/10 transition-colors tooltip" title="Share via Gmail"><Share2 className="w-5 h-5"/></button>
+                <button onClick={() => window.print()} className="p-2.5 rounded-xl border border-white/20 hover:bg-white/10 transition-colors" title="Download PDF"><Download className="w-5 h-5"/></button>
+                <button 
+                  onClick={handleDeleteTrip}
+                  disabled={isDeleting}
+                  className="p-2.5 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-colors"
+                  title="Delete Trip"
+                >
+                  <Plus className="w-5 h-5 rotate-45" />
+                </button>
                 <button 
                   onClick={() => setSaved(!saved)}
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-colors font-medium ${saved ? 'bg-[#00FF9D] text-black' : 'bg-white text-black hover:bg-gray-200'}`}
@@ -318,28 +414,53 @@ function ItineraryPage() {
               </div>
 
               {/* Hotel Card */}
-              <div className="bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden flex flex-col">
-                <div className="h-32 bg-[url('https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center relative">
-                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-2 py-1 text-xs rounded-md font-medium border border-white/10">Night 1 & 2</div>
-                </div>
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-lg">Snow Valley Resorts</h3>
-                    <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-sm font-medium">
-                      <Star className="w-3 h-3 fill-current" /> 4.2
+              {availablePartners.filter(p => p.type === 'hotel').length > 0 ? (
+                <div className="bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                  <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${availablePartners.find(p => p.type === 'hotel').photo || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop'})` }}>
+                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-2 py-1 text-xs rounded-md font-medium border border-white/10">Night 1 & 2</div>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-lg">{availablePartners.find(p => p.type === 'hotel').title}</h3>
+                      <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-sm font-medium">
+                        <Star className="w-3 h-3 fill-current" /> 4.5
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-400 mb-4 flex items-center gap-1"><MapPin className="w-3 h-3" /> {destName}</p>
+                    <div className="flex justify-between items-center mt-auto">
+                      <div>
+                        <p className="text-lg font-bold">₹{availablePartners.find(p => p.type === 'hotel').price} <span className="text-xs text-gray-500 font-normal">/ night</span></p>
+                      </div>
+                      <button className="bg-[#00FF9D] text-black px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#00e68d] transition-colors">
+                        Book Now
+                      </button>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-400 mb-4 flex items-center gap-1"><MapPin className="w-3 h-3" /> Mall Road, Shimla</p>
-                  <div className="flex justify-between items-center mt-auto">
-                    <div>
-                      <p className="text-lg font-bold">₹4,500 <span className="text-xs text-gray-500 font-normal">/ night</span></p>
+                </div>
+              ) : (
+                <div className="bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden flex flex-col">
+                  <div className="h-32 bg-[url('https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center relative">
+                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-2 py-1 text-xs rounded-md font-medium border border-white/10">Night 1 & 2</div>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-lg">Snow Valley Resorts</h3>
+                      <div className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-sm font-medium">
+                        <Star className="w-3 h-3 fill-current" /> 4.2
+                      </div>
                     </div>
-                    <button className="bg-[#00FF9D] text-black px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#00e68d] transition-colors">
-                      Book Now
-                    </button>
+                    <p className="text-sm text-gray-400 mb-4 flex items-center gap-1"><MapPin className="w-3 h-3" /> Mall Road, Shimla</p>
+                    <div className="flex justify-between items-center mt-auto">
+                      <div>
+                        <p className="text-lg font-bold">₹4,500 <span className="text-xs text-gray-500 font-normal">/ night</span></p>
+                      </div>
+                      <button className="bg-[#00FF9D] text-black px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#00e68d] transition-colors">
+                        Book Now
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Budget Tracker */}
               <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-6">
@@ -379,7 +500,7 @@ function ItineraryPage() {
                 <h3 className="text-sm text-gray-400 mb-3 font-medium uppercase tracking-wider">Available Coupons</h3>
                 <div className="flex flex-wrap gap-2">
                   <div className="border border-[#00FF9D] text-[#00FF9D] bg-[#00FF9D]/5 px-3 py-1.5 rounded-lg text-sm font-mono border-dashed">YATRA20</div>
-                  <div className="border border-[#00FF9D] text-[#00FF9D] bg-[#00FF9D]/5 px-3 py-1.5 rounded-lg text-sm font-mono border-dashed">SHIMLA500</div>
+                  <div className="border border-[#00FF9D] text-[#00FF9D] bg-[#00FF9D]/5 px-3 py-1.5 rounded-lg text-sm font-mono border-dashed">{destName.split(',')[0].toUpperCase().replace(/\s+/g, '')}500</div>
                 </div>
               </div>
 
@@ -397,23 +518,38 @@ function ItineraryPage() {
                   <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
                     <Icon className="w-8 h-8 text-[#00FF9D]" />
                   </div>
-                  <div className="h-32 bg-white/5 rounded-xl mb-4 bg-[url('https://images.unsplash.com/photo-1522064516314-8f7808da50d9?q=80&w=400&auto=format&fit=crop')] bg-cover relative">
+                  <div className="h-32 bg-white/5 rounded-xl mb-4 bg-cover relative" style={{ backgroundImage: `url(${partner.photo || 'https://images.unsplash.com/photo-1522064516314-8f7808da50d9?q=80&w=400&auto=format&fit=crop'})` }}>
                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-1 text-xs rounded-md font-medium border border-white/10 capitalize">
                        {partner.type}
                      </div>
                   </div>
                   <h3 className="font-bold mb-1">{partner.title}</h3>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex items-center gap-0.5 text-yellow-500">
+                      <Star className="w-3 h-3 fill-current" />
+                      <span className="text-xs font-bold">{partner.averageRating ? partner.averageRating.toFixed(1) : 'New'}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500">({partner.totalRatings || 0} reviews)</span>
+                  </div>
                   <p className="text-xs text-gray-400 mb-2 line-clamp-2">{partner.description}</p>
                   <div className="flex justify-between items-center text-sm text-gray-400 mb-4">
                     <span className="text-[#00FF9D] font-medium">₹{partner.price || 'Ask Price'}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {partner.duration || 'N/A'}</span>
                   </div>
-                  <button 
-                    onClick={() => setSelectedActivity(partner)}
-                    className="mt-auto w-full py-2 bg-white/10 hover:bg-[#00FF9D]/20 hover:text-[#00FF9D] rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" /> Add to Trip
-                  </button>
+                  <div className="flex gap-2 mt-auto">
+                    <button 
+                      onClick={() => setSelectedActivity(partner)}
+                      className="flex-1 py-2 bg-[#00FF9D]/10 text-[#00FF9D] hover:bg-[#00FF9D]/20 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> Add
+                    </button>
+                    <button 
+                      onClick={() => setRatingPartner(partner)}
+                      className="px-3 py-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl text-sm font-medium transition-colors"
+                    >
+                      Rate
+                    </button>
+                  </div>
                 </div>
               );
             }) : (
@@ -471,6 +607,51 @@ function ItineraryPage() {
                 className="flex-1 py-3 rounded-xl bg-[#00FF9D] text-black font-bold hover:bg-[#00e68d] transition-colors disabled:opacity-50"
               >
                 {isAdding ? 'Adding...' : 'Confirm'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Rating Modal */}
+      {ratingPartner && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#111] border border-white/10 p-8 rounded-[2.5rem] max-w-sm w-full text-center"
+          >
+            <div className="w-16 h-16 bg-[#00FF9D]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Star className="w-8 h-8 text-[#00FF9D]" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Rate {ratingPartner.title}</h3>
+            <p className="text-gray-400 text-sm mb-8">How was your experience? Your rating helps other travelers!</p>
+            
+            <div className="flex justify-center gap-2 mb-10">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setUserRating(star)}
+                  className={`transition-all ${userRating >= star ? 'text-yellow-500 scale-110' : 'text-gray-600'}`}
+                >
+                  <Star className={`w-10 h-10 ${userRating >= star ? 'fill-current' : ''}`} />
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setRatingPartner(null)}
+                className="flex-1 py-3 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitRating}
+                disabled={isRating}
+                className="flex-1 py-3 rounded-xl bg-[#00FF9D] text-black font-bold hover:bg-[#00e68d] transition-colors disabled:opacity-50"
+              >
+                {isRating ? 'Submitting...' : 'Submit Rating'}
               </button>
             </div>
           </motion.div>

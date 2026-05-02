@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Map, Plane, Tag, Star, Calendar, Users, ArrowRight, Share2, Eye,
-  Clock, MapPin, Gift, Search, Plus, Navigation
+  Clock, MapPin, Gift, Search, Plus, Navigation, ArrowLeft
 } from 'lucide-react';
 
 function DashboardPage() {
@@ -37,13 +37,28 @@ function DashboardPage() {
       {/* Header */}
       <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold tracking-tighter">
-            YATRA<span className="text-[#00FF9D]">sathi</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-400 hover:text-white" title="Back">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <Link to="/" className="text-2xl font-bold tracking-tighter">
+              YATRA<span className="text-[#00FF9D]">sathi</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-4">
             <Link to="/profile" className="w-10 h-10 rounded-full border border-white/20 overflow-hidden bg-[#00FF9D]/20 flex items-center justify-center text-[#00FF9D] font-bold">
               {user ? user.name.charAt(0).toUpperCase() : 'U'}
             </Link>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/auth');
+              }}
+              className="text-xs font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
@@ -121,90 +136,15 @@ function DashboardPage() {
                 )}
               </div>
             </section>
-
-            {/* PAST TRIPS */}
-            <section>
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-400" /> Past Trips
-              </h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[
-                  { dest: "Shimla & Manali", dates: "Dec 2023", img: "https://images.unsplash.com/photo-1605649487212-4d4ce7708323?q=80&w=800&auto=format&fit=crop", rating: 5, tips: true },
-                  { dest: "Kerala Backwaters", dates: "Oct 2023", img: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=800&auto=format&fit=crop", rating: 4, tips: false },
-                ].map((trip, i) => (
-                  <div key={i} className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden flex">
-                    <div className="w-1/3 min-h-[120px] bg-cover bg-center" style={{ backgroundImage: `url(${trip.img})` }}></div>
-                    <div className="w-2/3 p-4 flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-bold text-lg mb-1">{trip.dest}</h3>
-                        <p className="text-xs text-gray-400 mb-2">{trip.dates}</p>
-                        <div className="flex gap-1 mb-2">
-                          {[1,2,3,4,5].map(s => <Star key={s} className={`w-3 h-3 ${s <= trip.rating ? 'text-[#00FF9D] fill-current' : 'text-gray-600'}`} />)}
-                        </div>
-                        {trip.tips && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">Tips Shared</span>}
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        <button className="flex-1 py-1.5 text-xs border border-white/20 rounded hover:bg-white/10 transition-colors flex items-center justify-center gap-1"><Eye className="w-3 h-3"/> View</button>
-                        <button className="flex-1 py-1.5 text-xs border border-white/20 rounded hover:bg-white/10 transition-colors flex items-center justify-center gap-1"><Share2 className="w-3 h-3"/> Share</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* SAVED / DRAFT PLANS */}
-            <section>
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-400" /> Saved & Drafts
-              </h2>
-              
-              <div className="space-y-4">
-                <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Rajasthan Heritage Tour</h3>
-                      <p className="text-xs text-gray-400 mb-2">Last edited 2 days ago</p>
-                      <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div className="w-[60%] h-full bg-[#00FF9D]"></div>
-                      </div>
-                    </div>
-                  </div>
-                  <Link to="/plan" className="text-sm font-medium hover:text-[#00FF9D] flex items-center gap-1">
-                    Continue <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </section>
           </div>
 
           {/* RIGHT COLUMN - SIDE PANEL */}
           <div className="lg:w-[30%] space-y-6">
-            
             <div className="bg-[#00FF9D]/10 border border-[#00FF9D]/20 rounded-2xl p-6 relative overflow-hidden group">
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-[#00FF9D]/20 blur-xl rounded-full"></div>
               <h3 className="font-bold text-lg text-white mb-2 relative z-10">Spontaneous Trip?</h3>
               <p className="text-sm text-gray-300 mb-4 relative z-10">Let our AI build a weekend getaway based on your past preferences.</p>
               <button className="w-full bg-[#00FF9D] text-black py-2.5 rounded-xl font-bold text-sm relative z-10">Auto-Generate Plan</button>
-            </div>
-
-            <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
-              <h3 className="font-bold mb-4 flex items-center gap-2"><Eye className="w-4 h-4"/> Recently Viewed</h3>
-              <div className="space-y-3">
-                {['Ladakh', 'Pondicherry', 'Rishikesh'].map((dest, i) => (
-                  <Link key={i} to="/destination/demo" className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg transition-colors -mx-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/10"></div>
-                      <span className="text-sm font-medium">{dest}</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-gray-500" />
-                  </Link>
-                ))}
-              </div>
             </div>
 
             <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
@@ -216,16 +156,6 @@ function DashboardPage() {
                 </div>
               </div>
             </div>
-
-            <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-white/10 rounded-2xl p-6">
-              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-4">
-                <Gift className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold mb-2">Invite a Friend</h3>
-              <p className="text-sm text-gray-300 mb-4">Get ₹1,000 YATRA credits when a friend books their first trip.</p>
-              <button className="w-full bg-white text-black py-2 rounded-xl text-sm font-bold">Copy Referral Link</button>
-            </div>
-
           </div>
 
         </div>
