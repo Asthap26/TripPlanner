@@ -8,7 +8,9 @@ import {
 } from 'lucide-react';
 
 function LandingPage() {
-  const [hasEntered, setHasEntered] = useState(false);
+  const [hasEntered, setHasEntered] = useState(() => {
+    return sessionStorage.getItem('hasSeenIntro') === 'true';
+  });
   const [stats, setStats] = useState({ totalUsers: 0, tripsPlanned: 0, activeDestinations: 0 });
   const navigate = useNavigate();
 
@@ -33,7 +35,10 @@ function LandingPage() {
       <AnimatePresence mode="wait">
         {!hasEntered ? (
           <motion.div key="intro" exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-            <Intro onEnter={() => setHasEntered(true)} />
+            <Intro onEnter={() => {
+              sessionStorage.setItem('hasSeenIntro', 'true');
+              setHasEntered(true);
+            }} />
           </motion.div>
         ) : (
           <motion.div 
@@ -57,6 +62,9 @@ function LandingPage() {
                   <Link to="/about" className="hover:text-white transition-colors">About</Link>
                 </nav>
                 <div className="flex items-center gap-4">
+                  <Link to="/partner-onboarding" className="text-sm font-medium text-[#00FF9D] border border-[#00FF9D]/30 px-4 py-2 rounded-full hover:bg-[#00FF9D]/10 transition-colors hidden md:block">
+                    Register Business
+                  </Link>
                   <Link to="/auth" className="text-sm font-medium hover:text-white transition-colors hidden sm:block">Login</Link>
                   <Link to="/plan" onClick={handlePlanClick} className="bg-[#00FF9D] text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-[#00e68d] transition-colors shadow-[0_0_15px_rgba(0,255,157,0.3)]">
                     Start Planning
@@ -101,18 +109,14 @@ function LandingPage() {
                   </div>
                 </div>
 
-                <div className="flex-1 relative w-full aspect-square max-w-[500px]">
-                  {/* CSS 3D Globe Placeholder */}
-                  <div className="absolute inset-0 bg-[#0A0A0A] rounded-full border border-white/5 overflow-hidden shadow-[0_0_100px_rgba(0,255,157,0.1)]">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(0,255,157,0.2)_0%,transparent_60%)]"></div>
-                    <div className="w-[200%] h-[200%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-[spin_20s_linear_infinite]" 
-                         style={{ 
-                           backgroundImage: 'linear-gradient(rgba(0,255,157,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,157,0.2) 1px, transparent 1px)', 
-                           backgroundSize: '40px 40px',
-                           borderRadius: '50%'
-                         }}>
-                    </div>
-                  </div>
+                <div className="flex-1 relative w-full aspect-square max-w-[500px] flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#00FF9D]/20 blur-[100px] rounded-full"></div>
+                  <img 
+                    src="/hero-image.png" 
+                    alt="Travel Planner Hero" 
+                    className="w-[90%] h-[90%] object-contain relative z-10 hover:scale-105 transition-transform duration-700" 
+                    style={{ filter: 'drop-shadow(0 0 30px rgba(0,255,157,0.4))' }} 
+                  />
                 </div>
               </section>
 
